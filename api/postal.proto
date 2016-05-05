@@ -1,0 +1,107 @@
+/*
+Copyright 2016 Jive Communications All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+option java_package = "com.jive.infra.postal.api";
+
+package api;
+
+message Error{
+	uint32 code = 1;
+	string message = 2;
+}
+
+message Empty {}
+
+message Network {
+  string ID = 1;
+  map<string, string> annotations = 2;
+	repeated string cidrs = 3;
+
+}
+
+message Pool {
+	message PoolID {
+  	string networkID = 1;
+  	string ID = 2;
+	}
+	PoolID ID = 1;
+  map<string, string> annotations = 2;
+  int32 maximumAddresses = 3;
+  int32 minimumAddresses = 4;
+	enum Type {
+		DYNAMIC = 0;
+		FIXED = 1;
+	}
+	Type type = 5;
+}
+
+message Binding {
+	Pool.PoolID poolID = 1;
+	string ID = 2;
+  map<string, string> annotations = 3;
+  repeated string addresses = 4;
+  int64 bindTime = 5;
+}
+
+
+service Postal {
+	rpc NetworkRange (NetworkRangeRequest) returns (NetworkRangeResponse);
+  rpc NetworkAdd (NetworkAddRequest) returns (NetworkAddResponse);
+  rpc NetworkRemove (NetworkRemoveRequest) returns (NetworkRemoveResponse);
+
+  //rpc PoolRange (PoolRangeRequest) returns (PoolRangeResponse);
+  //rpc PoolAdd (PoolAddRequest) returns (PoolAddResponse);
+  //rpc PoolRemove (PoolRemoveRequest) returns (PoolRemoveResponse);
+  //rpc PoolSetMinMax (PoolSetMinMaxRequest) returns (PoolSetMinMaxResponse);
+  //rpc PoolGC (PoolGCRequest) returns (PoolGCResponse);
+
+  //rpc AddressRange (AddressRangeRequest) returns (AddressRangeResponse);
+  //rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
+  //rpc BindAddress (BindAddressRequest) returns (BindAddressResponse);
+  //rpc ReleaseAddress (ReleaseAddressRequest) returns (ReleaseAddressResponse);
+  //rpc RecycleAddress (RecycleAddressRequest) returns (RecycleAddressResponse);
+}
+
+message NetworkRangeRequest {
+  string ID = 1;
+  int32 size = 2;
+  int32 offset = 3;
+}
+
+message NetworkRangeResponse {
+  repeated Network networks = 1;
+  int32 size = 2;
+  int32 offset = 3;
+}
+
+message NetworkAddRequest {
+  string ID = 1;
+  map<string, string> annotations = 2;
+  string cidrs = 3;
+}
+
+message NetworkAddResponse {
+  Network network = 1;
+}
+
+message NetworkRemoveRequest {
+  string ID = 1;
+}
+
+message NetworkRemoveResponse {
+}
