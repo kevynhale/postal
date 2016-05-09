@@ -22,9 +22,13 @@ import (
 )
 
 func ipv4ToUint(addr net.IP) uint32 {
+	if addr.To4() == nil {
+		return 0
+	}
+
 	var sum uint32
 	for i := uint32(0); i < net.IPv4len; i++ {
-		sum += uint32(addr[i]) << (24 - i*8)
+		sum += uint32(addr.To4()[i]) << (24 - i*8)
 	}
 
 	return sum

@@ -19,7 +19,7 @@ find_dirs() {
          \) -name "$1" -print0 | xargs -0n1 dirname | sort -u
 }
 
-TESTFLAGS="-cover ${TESTFLAGS}"
+TESTFLAGS="-cover -v ${TESTFLAGS}"
 
 if [ -z "$TESTDIRS" ]; then
     TESTDIRS=$(find_dirs '*_test.go')
@@ -29,7 +29,7 @@ TESTS_FAILED=()
 
 for dir in $TESTDIRS; do
     dirhash=$(echo ${dir} | sha256sum | cut -c1-8)
-    echo '+ go test' -coverprofile=${dirhash}.cover.out  $TESTFLAGS "${dir}"
+    echo '+ go test' -coverprofile=${dirhash}.cover.out $TESTFLAGS "${dir}"
     CGO_ENABLED=0 go test -coverprofile=${dirhash}.cover.out ${TESTFLAGS} ${dir}
     if [ $? != 0 ]; then
         TESTS_FAILED+=("$dir")

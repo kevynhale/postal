@@ -21,32 +21,37 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIPAM(t *testing.T) {
-	t.SkipNow()
+func TestIPAM_IT(t *testing.T) {
 	assert := assert.New(t)
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"127.0.0.1:2378"},
+		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		t.SkipNow()
 	}
 	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
 
-	//i, err := NewIPAM("2001:db8::/112", cli)
-	i, err := NewIPAM("10.117.0.0/16", cli)
+	i, err := NewIPAM("10.10.0.0/16", cli)
 	if err != nil {
 		t.Error(err)
 	}
 
+	// Concurrent goroutines
 	txn := 50
+	// Number of transactions per goroutine
 	batches := 20
+	// Number of addresses to allocate each transaction
 	count := 50
 
+	// addrChan will collect the allocations
 	addrChan := make(chan []net.IPNet)
 	for idx := 0; idx < txn; idx++ {
 		go func() {
@@ -61,37 +66,41 @@ func TestIPAM(t *testing.T) {
 		}()
 	}
 
+	// set of addresses to use for uniqueness checks
 	finalAddrs := map[string]struct{}{}
 
 	for idx := 0; idx < txn; idx++ {
 		select {
 		case addrs := <-addrChan:
+			// Assert each allocation matches the specified size
 			assert.Equal(count, len(addrs))
+			// Assert that every address is unique
 			for _, addr := range addrs {
 				if _, ok := finalAddrs[addr.String()]; ok {
 					t.Fatal("Address is a duplicate: ", addr.String())
 				} else {
 					finalAddrs[addr.String()] = struct{}{}
 				}
-				//fmt.Println(addr)
 			}
 		}
 	}
 
-	released := 0
-	for cidr, _ := range finalAddrs {
-		if released > count {
+	// release 50 addresses
+	released := map[string]struct{}{}
+	for cidr := range finalAddrs {
+		if len(released) > count {
 			break
 		}
-		ip, _, _ := net.ParseCIDR(cidr)
+		ip, ipNet, _ := net.ParseCIDR(cidr)
 		err := i.Release(ip)
 		if err != nil {
 			t.Fatalf("Error releasing address: %v", err)
 		}
-		released++
+		released[ipNet.String()] = struct{}{}
 	}
 
+	// Allocate an address and assert that it was from the released addresses.
 	addrs, _ := i.Allocate(1)
-	_, ok := finalAddrs[addrs[0].String()]
+	_, ok := released[addrs[0].String()]
 	assert.True(ok)
 }
