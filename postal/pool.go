@@ -17,8 +17,12 @@ limitations under the License.
 package postal
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
@@ -30,6 +34,8 @@ type PoolManager interface {
 	AllocateAddress(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error)
 	AllocateMultipleAddresses(annotations map[string]string, addresses uint) (*api.Binding, error)
 	ReleaseBinding(*api.Binding) error
+	LookupBinding(ID string) (*api.Binding, error)
+	GetID() string
 }
 
 type etcdPoolManager struct {
@@ -37,6 +43,14 @@ type etcdPoolManager struct {
 	pool *api.Pool
 	IPAM ipam.IPAM
 }
+
+func (pm *etcdPoolManager) GetID() string {
+	return pm.pool.ID.ID
+}
+
+// ReleasedBindingTTL defines the period of time in seconds for which a
+// released binding is kept for informational purposes.
+const ReleasedBindingTTL = 60 * 60 * 6
 
 type BindError map[string]error
 
@@ -53,8 +67,10 @@ func (pm *etcdPoolManager) AllocateAddress(annotations map[string]string, reques
 		PoolID:      pm.pool.ID,
 		ID:          uuid.NewV4().String(),
 		Annotations: annotations,
+		BindTime:    time.Now().UTC().UnixNano(),
+		ReleaseTime: -1,
 	}
-	if requestedAddress.IsUnspecified() {
+	if requestedAddress == nil || requestedAddress.IsUnspecified() {
 		ipnet, err := pm.IPAM.Allocate(1)
 		if err != nil {
 			return nil, err
@@ -75,6 +91,14 @@ func (pm *etcdPoolManager) AllocateAddress(annotations map[string]string, reques
 		}
 	}
 
+	err := pm.writeBinding(binding)
+	if err != nil {
+		for idx := range binding.Addresses {
+			pm.IPAM.Release(net.ParseIP(binding.Addresses[idx]))
+		}
+		return nil, err
+	}
+
 	return binding, nil
 }
 
@@ -84,6 +108,8 @@ func (pm *etcdPoolManager) AllocateMultipleAddresses(annotations map[string]stri
 		ID:          uuid.NewV4().String(),
 		Annotations: annotations,
 		Addresses:   []string{},
+		BindTime:    time.Now().UTC().UnixNano(),
+		ReleaseTime: -1,
 	}
 
 	addrs, err := pm.IPAM.Allocate(addresses)
@@ -94,10 +120,25 @@ func (pm *etcdPoolManager) AllocateMultipleAddresses(annotations map[string]stri
 	for _, ipnet := range addrs {
 		binding.Addresses = append(binding.Addresses, ipnet.IP.String())
 	}
+
+	err = pm.writeBinding(binding)
+	if err != nil {
+		for idx := range binding.Addresses {
+			pm.IPAM.Release(net.ParseIP(binding.Addresses[idx]))
+		}
+		return nil, err
+	}
+
 	return binding, nil
 }
 
 func (pm *etcdPoolManager) ReleaseBinding(binding *api.Binding) error {
+	binding.ReleaseTime = time.Now().UTC().UnixNano()
+	err := pm.writeBinding(binding)
+	if err != nil {
+		return err
+	}
+
 	errs := BindError{}
 	for _, addr := range binding.Addresses {
 		ip := net.ParseIP(addr)
@@ -109,6 +150,67 @@ func (pm *etcdPoolManager) ReleaseBinding(binding *api.Binding) error {
 
 	if len(errs) > 0 {
 		return errs
+	}
+
+	return nil
+}
+
+func (pm *etcdPoolManager) LookupBinding(ID string) (*api.Binding, error) {
+	resp, err := pm.etcd.KV.Get(
+		context.TODO(),
+		bindingIDKey(pm.pool.ID.NetworkID, pm.pool.ID.ID, ID),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Kvs[0] == nil {
+		return nil, fmt.Errorf("Binding not found: %s", ID)
+	}
+
+	binding := &api.Binding{}
+	err = json.Unmarshal(resp.Kvs[0].Value, binding)
+	if err != nil {
+		return nil, err
+	}
+
+	return binding, nil
+}
+
+func (pm *etcdPoolManager) writeBinding(binding *api.Binding) error {
+	data, err := binding.Marshal()
+	if err != nil {
+		return err
+	}
+
+	putOpOptions := []clientv3.OpOption{}
+	if binding.ReleaseTime > 0 {
+		resp, err := pm.etcd.Lease.Grant(context.TODO(), ReleasedBindingTTL)
+		if err != nil {
+			return err
+		}
+
+		putOpOptions = append(putOpOptions, clientv3.WithLease(resp.ID))
+	}
+
+	ops := []clientv3.Op{}
+	for idx := range binding.Addresses {
+		ops = append(ops, clientv3.OpPut(
+			bindingAddrKey(binding.PoolID.NetworkID, binding.ID, net.ParseIP(binding.Addresses[idx])),
+			string(data), putOpOptions...))
+	}
+
+	ops = append(ops, clientv3.OpPut(bindingIDKey(
+		pm.pool.ID.NetworkID,
+		pm.pool.ID.ID,
+		binding.ID,
+	), string(data), putOpOptions...))
+
+	_, err = pm.etcd.KV.Txn(context.TODO()).Then(ops...).Commit()
+
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -30,7 +30,7 @@ message Empty {}
 message Network {
   string ID = 1;
   map<string, string> annotations = 2;
-	repeated string cidrs = 3;
+	string cidr = 3;
 
 }
 
@@ -41,10 +41,15 @@ message Pool {
 	}
 	PoolID ID = 1;
   map<string, string> annotations = 2;
+	// The maximum number of addresses that the pool should allocate
   int32 maximumAddresses = 3;
+	// The minimum number of addresses that the pool should allocate
   int32 minimumAddresses = 4;
+	// Base identity for types of address pools that are supported by the IPAM module
 	enum Type {
+		// DYNAMIC pool addresses are allocated reactively based on requests to the pool
 		DYNAMIC = 0;
+		// FIXED pool type indicates that the maximum number of addresses is allocated on the pool's initial creation
 		FIXED = 1;
 	}
 	Type type = 5;
@@ -56,6 +61,7 @@ message Binding {
   map<string, string> annotations = 3;
   repeated string addresses = 4;
   int64 bindTime = 5;
+	int64 releaseTime = 6;
 }
 
 

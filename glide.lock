@@ -1,5 +1,5 @@
-hash: a8386f8ca4026e40a11ff8cd81d3f3c199d8f5c26edfd1a161926704de7b749f
-updated: 2016-05-04T16:26:23.795632933-06:00
+hash: c755aa42f332d9444849dea96d8c06e291c997c9167c902d18d607932f079a6c
+updated: 2016-05-09T13:05:10.911970406-06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c
@@ -19,14 +19,12 @@ imports:
   version: 32cd0c5b3aef12c76ed64aaf678f6c79736be7dc
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
-  repo: https://github.com/cloudfoundry-incubator/candiedyaml
 - name: github.com/cockroachdb/cmux
   version: 9d8f8e431ac319fe4e84d8eaffa4061ddfea1efb
-  repo: https://github.com/cockroachdb/cmux
 - name: github.com/codegangsta/cli
   version: b5232bb2934f606f9f27a1305f1eea224e8e8b88
 - name: github.com/coreos/etcd
-  version: 3bcd2b5b9f1a398b2d948f05bf71b731c6891bab
+  version: ffd1fa6f52dd17332ec5849d1af3314828a6bd56
   subpackages:
   - clientv3
 - name: github.com/coreos/go-etcd
@@ -50,7 +48,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: e8e0db9016175449df0e9c4b6e6995a9433a395c
 - name: github.com/godbus/dbus
-  version: 5f6efc7ef2759c81b7ba876593971bfce311eab3
+  version: 32c6cc29c14570de4cf6d7e7737d68fb2d01ad15
 - name: github.com/gogo/protobuf
   version: 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
   subpackages:
@@ -60,7 +58,9 @@ imports:
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/protobuf
-  version: 6aaa8d47701fa6cf07e914ec01fde3d4a1fe79c3
+  version: 7cc19b78d562895b13596ddce7aafb59dd789318
+  subpackages:
+  - /proto
 - name: github.com/google/btree
   version: cc6329d4279e3f025a53a83c397d2339b5705c45
 - name: github.com/hashicorp/hcl
@@ -71,12 +71,8 @@ imports:
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/julienschmidt/httprouter
   version: 77366a47451a56bb3ba682481eed85b64fea14e8
-- name: github.com/kr/pretty
-  version: add1dbc86daf0f983cd4a48ceb39deb95c729b67
 - name: github.com/kr/pty
   version: f7ee69f31298ecbe5d2b349c711e2547a617d398
-- name: github.com/kr/text
-  version: bb797dc4fb8320488f47bf11de07a733d7233e1f
 - name: github.com/magiconair/properties
   version: c265cfa48dda6474e208715ca93e987829f572f8
 - name: github.com/mattn/go-runewidth
@@ -116,7 +112,7 @@ imports:
 - name: github.com/spf13/pflag
   version: 08b1a584251b5b62f458943640fc8ebd4d50aaa5
 - name: github.com/spf13/viper
-  version: f904a1790545169368e8d37badd19d1895d94f29
+  version: d8a428b8a30606e1d0b355d91edf282609ade1a6
 - name: github.com/stretchr/objx
   version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
@@ -148,14 +144,13 @@ imports:
 - name: google.golang.org/appengine
   version: e234e71924d4aa52444bc76f2f831f13fa1eca60
 - name: google.golang.org/cloud
-  version: 200292f09e3aaa34878d801ab71fe823b1f7d36a
+  version: 5f3c6b769982b139bd7e06c4e49bc86b29b97997
 - name: google.golang.org/grpc
   version: 7f24e5e90e7e79ee1c68359b05908b668a23ffb2
 - name: gopkg.in/airbrake/gobrake.v2
   version: 31c8ff1fb8b79a6947e6565e9a6df535f98a6b94
 - name: gopkg.in/cheggaaa/pb.v1
   version: 226d21d43a305fac52b3a104ef83e721b15275e0
-  repo: https://gopkg.in/cheggaaa/pb.v1
 - name: gopkg.in/gemnasium/logrus-airbrake-hook.v2
   version: 31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd
 - name: gopkg.in/yaml.v1

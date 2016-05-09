@@ -17,10 +17,10 @@ limitations under the License.
 package postal
 
 import (
-	"path"
+	"encoding/json"
+	"strings"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/twinj/uuid"
 	"golang.org/x/net/context"
@@ -30,41 +30,108 @@ import (
 const PostalEtcdKeyPrefix = "/postal/registry/v1/"
 
 type Config struct {
-	EtcdEndpoints []string
-
 	etcd *clientv3.Client
 }
 
 func (config *Config) WithEtcdClient(etcd *clientv3.Client) *Config {
-	config.EtcdEndpoints = etcd.Endpoints()
 	config.etcd = etcd
 	return config
 }
 
-func (config *Config) NewPool(pool *api.Pool, IPAM ipam.IPAM) (PoolManager, error) {
-	pool.ID.ID = uuid.NewV4().String()
+func (config *Config) WithEtcdEndpoints(endpoints []string) *Config {
+	var err error
+	config.etcd, err = clientv3.New(clientv3.Config{
+		Endpoints: endpoints,
+	})
 
-	poolBytes, err := pool.Marshal()
+	if err != nil {
+		return nil
+	}
+
+	return config
+}
+
+type etcdNetworkMeta struct {
+	ID          string            `json:"id"`
+	IpamID      string            `json:"ipam"`
+	Cidr        string            `json:"cidr"`
+	Annotations map[string]string `json:"annotations"`
+}
+
+func (config *Config) Networks() ([]string, error) {
+	resp, err := config.etcd.Get(context.TODO(), networksKey(), clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+
+	networks := []string{}
+	for idx := range resp.Kvs {
+		networks = append(networks, strings.Split(string(resp.Kvs[idx].Key), "/")[5])
+	}
+
+	return networks, nil
+}
+
+func (config *Config) Network(ID string) (NetworkManager, error) {
+	resp, err := config.etcd.Get(context.TODO(), networkMetaKey(ID))
+	if err != nil {
+		return nil, err
+	}
+
+	network := &etcdNetworkMeta{}
+	err = json.Unmarshal(resp.Kvs[0].Value, network)
+	if err != nil {
+		return nil, err
+	}
+
+	IPAM, err := ipam.FetchIPAM(network.IpamID, config.etcd)
+	if err != nil {
+		return nil, err
+	}
+
+	return &etcdNetworkManager{
+		ID:          network.ID,
+		cidr:        network.Cidr,
+		annotations: network.Annotations,
+		IPAM:        IPAM,
+		etcd:        config.etcd,
+	}, nil
+}
+
+func (config *Config) NewNetwork(annotations map[string]string, cidr string) (NetworkManager, error) {
+	IPAM, err := ipam.NewIPAM(cidr, config.etcd)
+	if err != nil {
+		return nil, err
+	}
+
+	network := &etcdNetworkMeta{
+		ID:          uuid.NewV4().String(),
+		IpamID:      IPAM.GetID(),
+		Cidr:        cidr,
+		Annotations: annotations,
+	}
+
+	networkBytes, err := json.Marshal(network)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = config.etcd.KV.Put(
 		context.TODO(),
-		path.Join(
-			PostalEtcdKeyPrefix,
-			"networks", pool.ID.NetworkID,
-			"pools", pool.ID.ID, "meta"),
-		string(poolBytes),
+		networkMetaKey(network.ID),
+		string(networkBytes),
 	)
 
 	if err != nil {
+		//TODO: cleanup IPAM
 		return nil, err
 	}
 
-	return &etcdPoolManager{
-		etcd: config.etcd,
-		pool: pool,
-		IPAM: IPAM,
+	return &etcdNetworkManager{
+		ID:          network.ID,
+		cidr:        cidr,
+		annotations: annotations,
+		IPAM:        IPAM,
+		etcd:        config.etcd,
 	}, nil
 }

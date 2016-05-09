@@ -16,6 +16,62 @@ limitations under the License.
 
 package postal
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+	"time"
 
-func Test(t *testing.T) {}
+	"github.com/coreos/etcd/clientv3"
+	"github.com/jive/postal/api"
+)
+
+func Test(t *testing.T) {
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	config := (&Config{}).WithEtcdClient(cli)
+
+	network, err := config.NewNetwork(map[string]string{}, "10.117.0.0/16")
+	if err != nil {
+		t.Error(err)
+	}
+
+	pm1, err := network.NewPool(map[string]string{}, 2, 5, api.Pool_DYNAMIC)
+	if err != nil {
+		t.Error(err)
+	}
+	pm1.AllocateAddress(map[string]string{}, nil)
+
+	pm2, err := network.NewPool(map[string]string{}, 2, 5, api.Pool_DYNAMIC)
+	if err != nil {
+		t.Error(err)
+	}
+
+	pm3, err := network.NewPool(map[string]string{}, 2, 5, api.Pool_DYNAMIC)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(pm1.GetID())
+	fmt.Println(pm2.GetID())
+	fmt.Println(pm3.GetID())
+
+	poolIDs, err := network.Pools()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(poolIDs)
+
+	networkIDs, err := config.Networks()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(networkIDs)
+}

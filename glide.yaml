@@ -1,9 +1,13 @@
 package: github.com/jive/postal
 import:
 - package: github.com/coreos/etcd
-  version: 3bcd2b5b9f1a398b2d948f05bf71b731c6891bab
+  version: v3.0.0-beta.0
   subpackages:
   - clientv3
+- package: github.com/golang/protobuf
+  version: 7cc19b78d562895b13596ddce7aafb59dd789318
+  subpackages:
+  - /proto
 - package: github.com/gogo/protobuf
   version: 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
   subpackages:
@@ -22,3 +26,6 @@ import:
   subpackages:
   - /assert
 - package: github.com/twinj/uuid
+- package: github.com/cloudfoundry-incubator/candiedyaml
+- package: github.com/ghodss/yaml
+  version: e8e0db9016175449df0e9c4b6e6995a9433a395c

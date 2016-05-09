@@ -62,6 +62,8 @@ type IPAM interface {
 	Size() uint64
 	// Available returns the cardinality of the non-allocated set of addresses.
 	Available() uint64
+	// GetID is the unique identifier for the ipam module
+	GetID() string
 }
 
 // ipamEtcdBlock wraps the individual ipam block with etcd specific attributes
@@ -433,4 +435,8 @@ func (ipam *etcdIPAM) Size() uint64 {
 
 func (ipam *etcdIPAM) Available() uint64 {
 	return uint64(0)
+}
+
+func (ipam *etcdIPAM) GetID() string {
+	return ipam.ID
 }

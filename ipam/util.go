@@ -16,7 +16,10 @@ limitations under the License.
 
 package ipam
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 func ipv4ToUint(addr net.IP) uint32 {
 	var sum uint32
@@ -64,4 +67,21 @@ func uintToIPv6(prefix, subnet uint64) net.IP {
 		byte((subnet >> 8) & 0xff),
 		byte(subnet & 0xff),
 	}
+}
+
+func CanonicalIPString(addr net.IP) string {
+	ret := ""
+	if addr.To4() != nil {
+		for _, b := range addr.To4() {
+			ret += fmt.Sprintf("%03d/", b)
+		}
+	} else {
+		for i, b := range addr {
+			ret += fmt.Sprintf("%02x", b)
+			if i%2 == 1 {
+				ret += "/"
+			}
+		}
+	}
+	return ret[:len(ret)-1]
 }
