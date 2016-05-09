@@ -4,23 +4,14 @@ machine:
   services:
     - docker
 
-checkout:
-  post:
-    - git fetch --unshallow || true
-    - git fetch --tags
-    # GOPATH is cached, so we need to clean out the version from the previous
-    # run or the subsequent `mv` will fail. We put our checkout in the correct
-    # location for the OSX build step.
-    - rm -rf         "${GOPATH%%:*}/src/github.com/jive/postal"
-    - mkdir -p       "${GOPATH%%:*}/src/github.com/jive/"
-    - mv ~/postal "${GOPATH%%:*}/src/github.com/jive/"
-    - ln -s          "${GOPATH%%:*}/src/github.com/jive/postal" ~/postal
-    - go get github.com/Masterminds/glide
-
 dependencies:
   override:
-    - glide install
+    - make build
 
 test:
   override:
-    - go test -v $(glide novendor)
+    - make test
+
+general:
+  artifacts:
+    - "./dist"
