@@ -43,7 +43,10 @@ const (
 	PostalIPAMRetryMax = 10
 )
 
+// MinIPv4SubnetMask denotes the smallest ipv4 subnet ipam will allocate from
 var MinIPv4SubnetMask = net.IPv4Mask(255, 255, 255, 0)
+
+// MinIPv6SubnetMask denotes the smallest ipv6 subnet ipam will allocate from
 var MinIPv6SubnetMask = net.CIDRMask(112, 128)
 
 // IPAM defines the interface for allocating blocks of addresses
@@ -170,7 +173,7 @@ ALLOCATE:
 	// allocatedBlocks holds the set of addresses to be returned to the caller.
 	allocatedAddresses := []net.IP{}
 
-	// toCommit holds the set of ipamBlocks that need to be commited to the etcd.
+	// toCommit holds the set of ipamBlocks that need to be committed to the etcd.
 	toCommit := []*ipamEtcdBlock{}
 
 	for _, block := range blocks {
@@ -178,7 +181,7 @@ ALLOCATE:
 		if uint(len(allocatedAddresses)) == addresses {
 			break
 		}
-		// check if there are any addresses availble in the ipamBlock
+		// check if there are any addresses available in the ipamBlock
 		if block.block.Available() == 0 {
 			continue
 		}
@@ -191,7 +194,7 @@ ALLOCATE:
 			allocatedAddresses = append(allocatedAddresses, ipam.allocateSubBlock((addresses-uint(len(allocatedAddresses))), block.block)...)
 		}
 
-		// we've touched this ipamBlock, so push it onto the list to be commited.
+		// we've touched this ipamBlock, so push it onto the list to be committed.
 		toCommit = append(toCommit, block)
 	}
 

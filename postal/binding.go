@@ -16,9 +16,9 @@ const (
 	// DefaultReleasedBindingTTL defines the period of time in seconds for which a
 	// released binding is kept for informational purposes.
 	DefaultReleasedBindingTTL = 60 * 60 * 6
-	// NoTTL indicates that a ttl sould not be set when writing a binding.
+	// NoTTL indicates that a ttl should not be set when writing a binding.
 	NoTTL = 0
-	// HardRelease indicates that the binding should immediatly expire.
+	// HardRelease indicates that the binding should immediately expire.
 	HardRelease = 1
 )
 

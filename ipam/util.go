@@ -73,6 +73,7 @@ func uintToIPv6(prefix, subnet uint64) net.IP {
 	}
 }
 
+// CanonicalIPString takes an ip and returns a string used in the etcd key
 func CanonicalIPString(addr net.IP) string {
 	ret := ""
 	if addr.To4() != nil {
