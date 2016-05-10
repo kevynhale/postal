@@ -59,9 +59,10 @@ message Binding {
 	Pool.PoolID poolID = 1;
 	string ID = 2;
   map<string, string> annotations = 3;
-  repeated string addresses = 4;
-  int64 bindTime = 5;
-	int64 releaseTime = 6;
+  string address = 4;
+	int64 allocateTime = 5;
+  int64 bindTime = 6;
+	int64 releaseTime = 7;
 }
 
 

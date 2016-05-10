@@ -29,25 +29,14 @@ import (
 // PostalEtcdKeyPrefix defines the prefix used for all postal registry keys stored in etcd
 const PostalEtcdKeyPrefix = "/postal/registry/v1/"
 
+// Config is the base object which configures settings for postal internals
 type Config struct {
 	etcd *clientv3.Client
 }
 
+// WithEtcdClient is chaining method to set the etcdClient
 func (config *Config) WithEtcdClient(etcd *clientv3.Client) *Config {
 	config.etcd = etcd
-	return config
-}
-
-func (config *Config) WithEtcdEndpoints(endpoints []string) *Config {
-	var err error
-	config.etcd, err = clientv3.New(clientv3.Config{
-		Endpoints: endpoints,
-	})
-
-	if err != nil {
-		return nil
-	}
-
 	return config
 }
 
@@ -58,6 +47,7 @@ type etcdNetworkMeta struct {
 	Annotations map[string]string `json:"annotations"`
 }
 
+// Networks returns a list of network IDs the postal knows about
 func (config *Config) Networks() ([]string, error) {
 	resp, err := config.etcd.Get(context.TODO(), networksKey(), clientv3.WithPrefix())
 	if err != nil {
@@ -72,6 +62,7 @@ func (config *Config) Networks() ([]string, error) {
 	return networks, nil
 }
 
+// Network returns a specific NetworkManager for a given ID
 func (config *Config) Network(ID string) (NetworkManager, error) {
 	resp, err := config.etcd.Get(context.TODO(), networkMetaKey(ID))
 	if err != nil {
@@ -98,6 +89,7 @@ func (config *Config) Network(ID string) (NetworkManager, error) {
 	}, nil
 }
 
+// NewNetwork creates a new NetworkManager for the given block of addresses.
 func (config *Config) NewNetwork(annotations map[string]string, cidr string) (NetworkManager, error) {
 	IPAM, err := ipam.NewIPAM(cidr, config.etcd)
 	if err != nil {

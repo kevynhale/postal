@@ -27,6 +27,7 @@ import (
 	"golang.org/x/net/context"
 
 	etcd "github.com/coreos/etcd/clientv3"
+	"github.com/pkg/errors"
 	"github.com/twinj/uuid"
 )
 
@@ -43,14 +44,12 @@ const (
 )
 
 var MinIPv4SubnetMask = net.IPv4Mask(255, 255, 255, 0)
-var IPv4_32SubnetMask = net.IPv4Mask(255, 255, 255, 255)
 var MinIPv6SubnetMask = net.CIDRMask(112, 128)
-var IPv6_128SubnetMask = net.CIDRMask(128, 128)
 
 // IPAM defines the interface for allocating blocks of addresses
 type IPAM interface {
-	// Allocate a number of addresses. These are returned as one or more CIDR blocks.
-	Allocate(addresses uint) ([]net.IPNet, error)
+	// Allocate a number of addresses. These are returned as one or more net.IP structs.
+	Allocate(addresses uint) ([]net.IP, error)
 	// Release a specific address back.
 	Release(net.IP) error
 	// Claim forces a claim on a specific address.
@@ -162,21 +161,21 @@ func (ipam *etcdIPAM) String() string {
 	return fmt.Sprintf("ID: %s, net: %v, nextKey: %s", ipam.ID, ipam.net, ipam.nextKey)
 }
 
-func (ipam *etcdIPAM) Allocate(addresses uint) ([]net.IPNet, error) {
+func (ipam *etcdIPAM) Allocate(addresses uint) ([]net.IP, error) {
 	retryCount := 0
 ALLOCATE:
 	// fetch list of provisioned blocks
 	blocks, _ := ipam.fetchIpamBlocks()
 
 	// allocatedBlocks holds the set of addresses to be returned to the caller.
-	allocatedBlocks := []net.IPNet{}
+	allocatedAddresses := []net.IP{}
 
 	// toCommit holds the set of ipamBlocks that need to be commited to the etcd.
 	toCommit := []*ipamEtcdBlock{}
 
 	for _, block := range blocks {
 		// check to see if we've allocated all the addresses we need
-		if uint(len(allocatedBlocks)) == addresses {
+		if uint(len(allocatedAddresses)) == addresses {
 			break
 		}
 		// check if there are any addresses availble in the ipamBlock
@@ -186,10 +185,10 @@ ALLOCATE:
 
 		// if the number of available addresses is smaller than what is required we'll claim whats left of the it
 		// otherwise only allocate the number of required addresses.
-		if block.block.Available() < (addresses - uint(len(allocatedBlocks))) {
-			allocatedBlocks = append(allocatedBlocks, ipam.allocateSubBlock(block.block.Available(), block.block)...)
+		if block.block.Available() < (addresses - uint(len(allocatedAddresses))) {
+			allocatedAddresses = append(allocatedAddresses, ipam.allocateSubBlock(block.block.Available(), block.block)...)
 		} else {
-			allocatedBlocks = append(allocatedBlocks, ipam.allocateSubBlock((addresses-uint(len(allocatedBlocks))), block.block)...)
+			allocatedAddresses = append(allocatedAddresses, ipam.allocateSubBlock((addresses-uint(len(allocatedAddresses))), block.block)...)
 		}
 
 		// we've touched this ipamBlock, so push it onto the list to be commited.
@@ -198,21 +197,21 @@ ALLOCATE:
 
 	// if after iterating through the provisioned ipamBlock doesn't yield enough addresses
 	// a new ipamBlock must be provisoned.
-	for uint(len(allocatedBlocks)) < addresses {
+	for uint(len(allocatedAddresses)) < addresses {
 		block, err := ipam.nextBlock()
 		if err != nil {
 			if retryCount < PostalIPAMRetryMax {
 				retryCount++
 				goto ALLOCATE
 			} else {
-				return nil, err
+				return nil, errors.Wrap(err, "nextBlock failed")
 			}
 		}
 
-		if block.block.Available() < (addresses - uint(len(allocatedBlocks))) {
-			allocatedBlocks = append(allocatedBlocks, ipam.allocateSubBlock(block.block.Available(), block.block)...)
+		if block.block.Available() < (addresses - uint(len(allocatedAddresses))) {
+			allocatedAddresses = append(allocatedAddresses, ipam.allocateSubBlock(block.block.Available(), block.block)...)
 		} else {
-			allocatedBlocks = append(allocatedBlocks, ipam.allocateSubBlock((addresses-uint(len(allocatedBlocks))), block.block)...)
+			allocatedAddresses = append(allocatedAddresses, ipam.allocateSubBlock((addresses-uint(len(allocatedAddresses))), block.block)...)
 		}
 		toCommit = append(toCommit, block)
 	}
@@ -226,14 +225,14 @@ ALLOCATE:
 
 	resp, err := ipam.etcd.KV.Txn(context.Background()).If(cmps...).Then(ops...).Commit()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "etcd allocate transaction failed")
 	}
 	if !resp.Succeeded {
 		//TODO:backoff/rety count
 		goto ALLOCATE
 	}
 
-	return allocatedBlocks, nil
+	return allocatedAddresses, nil
 }
 
 // nextBlock provisions the next block of addresses from the IPAM module.
@@ -315,23 +314,17 @@ func (ipam *etcdIPAM) maxAllocations() float64 {
 	return math.Pow(float64(2), float64(MinIPv6SubnetSize-ones))
 }
 
-func (ipam *etcdIPAM) allocateSubBlock(addresses uint, block *ipamBlock) []net.IPNet {
-	allocatedBlocks := []net.IPNet{}
+func (ipam *etcdIPAM) allocateSubBlock(addresses uint, block *ipamBlock) []net.IP {
+	allocatedAddrs := []net.IP{}
 	addrs := block.BulkRequest(addresses)
 	for _, addr := range addrs {
 		if addr4 := addr.To4(); len(addr4) == net.IPv4len {
-			allocatedBlocks = append(allocatedBlocks, net.IPNet{
-				IP:   addr4,
-				Mask: IPv4_32SubnetMask,
-			})
+			allocatedAddrs = append(allocatedAddrs, addr4)
 		} else {
-			allocatedBlocks = append(allocatedBlocks, net.IPNet{
-				IP:   addr,
-				Mask: IPv6_128SubnetMask,
-			})
+			allocatedAddrs = append(allocatedAddrs, addr)
 		}
 	}
-	return allocatedBlocks
+	return allocatedAddrs
 }
 
 func (ipam *etcdIPAM) fetchIpamBlocks() (map[string]*ipamEtcdBlock, error) {

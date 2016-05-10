@@ -4,6 +4,8 @@ import:
   version: v3.0.0-beta.0
   subpackages:
   - clientv3
+- package: github.com/pkg/errors
+  version: v0.3.0
 - package: github.com/golang/protobuf
   version: 7cc19b78d562895b13596ddce7aafb59dd789318
   subpackages:

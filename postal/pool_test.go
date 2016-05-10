@@ -47,7 +47,7 @@ func mkPool(etcd *clientv3.Client, cidr string) *etcdPoolManager {
 	}
 }
 
-func TestAllocateAddress(t *testing.T) {
+func TestAllocate(t *testing.T) {
 	assert := assert.New(t)
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{"127.0.0.1:2379"},
@@ -59,43 +59,20 @@ func TestAllocateAddress(t *testing.T) {
 	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
 
 	pool := mkPool(cli, "10.0.0.0/24")
-	binding, err := pool.AllocateAddress(map[string]string{"abc": "123"}, nil)
+	binding, err := pool.Allocate(nil)
 	assert.NoError(err)
 	assert.NotNil(binding)
 
 	assert.Equal(pool.pool.ID.NetworkID, binding.PoolID.NetworkID)
 	assert.Equal(pool.pool.ID.ID, binding.PoolID.ID)
-	assert.Equal(1, len(binding.Addresses))
-	assert.Equal("10.0.0.1", binding.Addresses[0])
-	assert.Equal("123", binding.Annotations["abc"])
+	assert.Equal("10.0.0.1", binding.Address)
 
-	binding2, err := pool.AllocateAddress(map[string]string{}, net.ParseIP("10.0.0.3"))
+	binding2, err := pool.Allocate(net.ParseIP("10.0.0.3"))
 	assert.NoError(err)
 	assert.NotNil(binding2)
-	assert.Equal(1, len(binding2.Addresses))
-	assert.Equal("10.0.0.3", binding2.Addresses[0])
-}
+	assert.Equal("10.0.0.3", binding2.Address)
 
-func TestAllocateMultipleAddresses(t *testing.T) {
-	assert := assert.New(t)
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"127.0.0.1:2379"},
-		DialTimeout: 5 * time.Second,
-	})
-	assert.NoError(err)
-
-	defer cli.Close()
-	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
-
-	pool := mkPool(cli, "10.0.0.0/24")
-	binding, err := pool.AllocateMultipleAddresses(map[string]string{}, uint(10))
-	assert.NoError(err)
-	assert.NotNil(binding)
-
-	assert.Equal(pool.pool.ID.NetworkID, binding.PoolID.NetworkID)
-	assert.Equal(pool.pool.ID.ID, binding.PoolID.ID)
-	assert.Equal(10, len(binding.Addresses))
-	for idx := range binding.Addresses {
-		assert.Equal(byte(idx+1), net.ParseIP(binding.Addresses[idx]).To4()[3])
-	}
+	binding3, err := pool.Allocate(net.ParseIP("10.0.0.3"))
+	assert.Error(err)
+	assert.Nil(binding3)
 }

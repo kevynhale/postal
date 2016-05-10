@@ -13,6 +13,7 @@ import (
 	"github.com/twinj/uuid"
 )
 
+// NetworkManager defines the interface for how to interact with a Network of addresses.
 type NetworkManager interface {
 	Pools() ([]string, error)
 	Pool(ID string) (PoolManager, error)

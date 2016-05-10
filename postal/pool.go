@@ -17,25 +17,55 @@ limitations under the License.
 package postal
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
-	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
+	"github.com/pkg/errors"
 	"github.com/twinj/uuid"
 )
 
+// PoolManager defines the interface for how to interact with a specific pool.
+// A pool can be of type DYNAMIC or FIXED.
+//
+// DYNAMIC pools allow for Bind calls to automatically allocate new addresses if
+// the max address count has not been met. Released addresses in a DYNAMIC pool will
+// return to the parent network block if they are not rebound within the ttl period.
+//
+// FIXED pools can only bind addresses from pre allocated bindings. If there are no
+// bindings available and the max address count has not been met, the Bind call will
+// still fail and return an error.
+// Releasing an address in a FIXED pool does not place a ttl on it and it will never be
+// released back to the parent network block on its own.
 type PoolManager interface {
-	AllocateAddress(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error)
-	AllocateMultipleAddresses(annotations map[string]string, addresses uint) (*api.Binding, error)
-	ReleaseBinding(*api.Binding) error
-	LookupBinding(ID string) (*api.Binding, error)
-	GetID() string
+	// Allocate places an address into the pool to be bound in a subsequent Bind call.
+	Allocate(requestedAddress net.IP) (*api.Binding, error)
+	// Bind reserves an address such that no other Bind call can claim it.
+	// If the pool does not have enough addresses for the request and has not met it's maximum,
+	// it will attempt to allocate an additional address for the parent network block.
+	Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error)
+	// Release will place the address back into a state where it can be bound again within the pool.
+	// If the pool is a DYNAMIC type, it will place a TTL on the binding, such that when it expires it
+	// is released back into the parent network block.
+	//
+	// The hard flag, if true, indicates to do a hard release which removed the address from
+	// the pool back to the parent network block
+	Release(binding *api.Binding, hard bool) error
+	// Binding returns the api.Binding for the given ID.
+	Binding(ID string) (*api.Binding, error)
+	// ID returns the pool's ID
+	ID() string
+	// CurrentSize will enumerate the existing bindings for a pool and return the cardinatlity.
+	CurrentSize() int
+	// MaxSize indicates what the maximum number of addresses a pool may hold.
+	// A MaxSize of 0, disables this check and allows for a unbounded pool
+	MaxSize() int
+	// Type will be one of api.Pool_FIXED or api.Pool_DYNAMIC
+	Type() api.Pool_Type
 }
 
 type etcdPoolManager struct {
@@ -44,174 +74,152 @@ type etcdPoolManager struct {
 	IPAM ipam.IPAM
 }
 
-func (pm *etcdPoolManager) GetID() string {
+func (pm *etcdPoolManager) ID() string {
 	return pm.pool.ID.ID
 }
 
-// ReleasedBindingTTL defines the period of time in seconds for which a
-// released binding is kept for informational purposes.
-const ReleasedBindingTTL = 60 * 60 * 6
-
-type BindError map[string]error
-
-func (err BindError) Error() string {
-	errStr := "bind error: "
-	for ip, e := range err {
-		errStr += fmt.Sprintf("\t%s: %s\n", ip, e.Error())
-	}
-	return errStr
+func (pm *etcdPoolManager) Type() api.Pool_Type {
+	return pm.pool.Type
 }
 
-func (pm *etcdPoolManager) AllocateAddress(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
-	binding := &api.Binding{
+func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, error) {
+	if pm.CurrentSize() >= pm.MaxSize() {
+		return nil, errors.New("allocate failed: maximum addresses reached")
+	}
+	binding := newBinding(&api.Binding{
+		PoolID: pm.pool.ID,
+		ID:     uuid.NewV4().String(),
+	})
+
+	err := pm.allocateBinding(binding, requestedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "binding allocation failed")
+	}
+
+	return binding.Binding, nil
+}
+
+func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
+	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
 		ID:          uuid.NewV4().String(),
 		Annotations: annotations,
-		BindTime:    time.Now().UTC().UnixNano(),
-		ReleaseTime: -1,
-	}
+	})
+
 	if requestedAddress == nil || requestedAddress.IsUnspecified() {
-		ipnet, err := pm.IPAM.Allocate(1)
+		existingBindings, err := pm.listBindings()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "list bindings failed")
 		}
 
-		binding.Addresses = []string{
-			ipnet[0].IP.String(),
+		filteredBindings := filterBoundBindings(existingBindings)
+
+		// First, check existing unbound bindings and reuse if any exists
+		for idx := range filteredBindings {
+			err = pm.rebindBinding(filteredBindings[idx], annotations)
+			if err == nil {
+				return binding.Binding, nil
+			}
+		}
+
+		if pm.pool.Type == api.Pool_FIXED {
+			return nil, errors.New("bind failed: all allocated addresses in use")
+		}
+
+		// No existing binding could be used, so a new address is allocated
+		if pm.CurrentSize() >= pm.MaxSize() {
+			return nil, errors.New("allocate failed: maximum addresses reached")
+		}
+		ip, err := pm.IPAM.Allocate(1)
+		if err != nil {
+			return nil, errors.Wrap(err, "allocating address from ipam failed")
+		}
+
+		err = pm.bindBinding(binding, ip[0])
+		if err != nil {
+			return nil, errors.Wrap(err, "binding address failed")
 		}
 
 	} else {
-		err := pm.IPAM.Claim(requestedAddress)
+		// Check existing bindings for requested address
+		addrBinding, err := pm.getBindingForAddr(requestedAddress)
+		if addrBinding != nil && !addrBinding.isBound() {
+			err = pm.rebindBinding(addrBinding, annotations)
+			if err == nil {
+				return addrBinding.Binding, nil
+			}
+			return nil, fmt.Errorf("address already bound")
+		}
+
+		if pm.pool.Type == api.Pool_FIXED {
+			return nil, errors.New("bind failed: all allocated addresses in use")
+		}
+
+		if pm.CurrentSize() >= pm.MaxSize() {
+			return nil, errors.New("allocate failed: maximum addresses reached")
+		}
+		err = pm.IPAM.Claim(requestedAddress)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "address claim failed")
 		}
 
-		binding.Addresses = []string{
-			requestedAddress.String(),
+		err = pm.bindBinding(binding, requestedAddress)
+		if err != nil {
+			return nil, errors.Wrap(err, "binding address failed")
 		}
 	}
 
-	err := pm.writeBinding(binding)
-	if err != nil {
-		for idx := range binding.Addresses {
-			pm.IPAM.Release(net.ParseIP(binding.Addresses[idx]))
-		}
-		return nil, err
-	}
-
-	return binding, nil
+	return binding.Binding, nil
 }
 
-func (pm *etcdPoolManager) AllocateMultipleAddresses(annotations map[string]string, addresses uint) (*api.Binding, error) {
-	binding := &api.Binding{
-		PoolID:      pm.pool.ID,
-		ID:          uuid.NewV4().String(),
-		Annotations: annotations,
-		Addresses:   []string{},
-		BindTime:    time.Now().UTC().UnixNano(),
-		ReleaseTime: -1,
-	}
-
-	addrs, err := pm.IPAM.Allocate(addresses)
+func (pm *etcdPoolManager) Release(b *api.Binding, hard bool) error {
+	binding, err := pm.getBinding(b.ID)
 	if err != nil {
-		return nil, err
+		return errors.Wrap(err, "failed to get binding")
 	}
 
-	for _, ipnet := range addrs {
-		binding.Addresses = append(binding.Addresses, ipnet.IP.String())
-	}
-
-	err = pm.writeBinding(binding)
-	if err != nil {
-		for idx := range binding.Addresses {
-			pm.IPAM.Release(net.ParseIP(binding.Addresses[idx]))
-		}
-		return nil, err
-	}
-
-	return binding, nil
-}
-
-func (pm *etcdPoolManager) ReleaseBinding(binding *api.Binding) error {
-	binding.ReleaseTime = time.Now().UTC().UnixNano()
-	err := pm.writeBinding(binding)
-	if err != nil {
-		return err
-	}
-
-	errs := BindError{}
-	for _, addr := range binding.Addresses {
-		ip := net.ParseIP(addr)
-		err := pm.IPAM.Release(ip)
+	if hard {
+		err = pm.releaseBinding(binding, HardRelease)
 		if err != nil {
-			errs[ip.String()] = err
+			return errors.Wrap(err, "failed to hard release binding")
 		}
 	}
 
-	if len(errs) > 0 {
-		return errs
+	switch pm.pool.Type {
+	case api.Pool_DYNAMIC:
+		err = pm.releaseBinding(binding, DefaultReleasedBindingTTL)
+		if err != nil {
+			return errors.Wrap(err, "failed to release binding")
+		}
+
+	case api.Pool_FIXED:
+		err = pm.releaseBinding(binding, 0)
+		if err != nil {
+			return errors.Wrap(err, "failed to release binding")
+		}
 	}
 
 	return nil
 }
 
-func (pm *etcdPoolManager) LookupBinding(ID string) (*api.Binding, error) {
-	resp, err := pm.etcd.KV.Get(
-		context.TODO(),
-		bindingIDKey(pm.pool.ID.NetworkID, pm.pool.ID.ID, ID),
-	)
-
+func (pm *etcdPoolManager) Binding(ID string) (*api.Binding, error) {
+	binding, err := pm.getBinding(ID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get binding")
 	}
 
-	if resp.Kvs[0] == nil {
-		return nil, fmt.Errorf("Binding not found: %s", ID)
-	}
-
-	binding := &api.Binding{}
-	err = json.Unmarshal(resp.Kvs[0].Value, binding)
-	if err != nil {
-		return nil, err
-	}
-
-	return binding, nil
+	return binding.Binding, nil
 }
 
-func (pm *etcdPoolManager) writeBinding(binding *api.Binding) error {
-	data, err := binding.Marshal()
+func (pm *etcdPoolManager) CurrentSize() int {
+	resp, err := pm.etcd.KV.Get(context.Background(), bindingListKey(pm.pool.ID.NetworkID, pm.pool.ID.ID), clientv3.WithPrefix())
 	if err != nil {
-		return err
+		return 0
 	}
 
-	putOpOptions := []clientv3.OpOption{}
-	if binding.ReleaseTime > 0 {
-		resp, err := pm.etcd.Lease.Grant(context.TODO(), ReleasedBindingTTL)
-		if err != nil {
-			return err
-		}
+	return len(resp.Kvs)
+}
 
-		putOpOptions = append(putOpOptions, clientv3.WithLease(resp.ID))
-	}
-
-	ops := []clientv3.Op{}
-	for idx := range binding.Addresses {
-		ops = append(ops, clientv3.OpPut(
-			bindingAddrKey(binding.PoolID.NetworkID, binding.ID, net.ParseIP(binding.Addresses[idx])),
-			string(data), putOpOptions...))
-	}
-
-	ops = append(ops, clientv3.OpPut(bindingIDKey(
-		pm.pool.ID.NetworkID,
-		pm.pool.ID.ID,
-		binding.ID,
-	), string(data), putOpOptions...))
-
-	_, err = pm.etcd.KV.Txn(context.TODO()).Then(ops...).Commit()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (pm *etcdPoolManager) MaxSize() int {
+	return int(pm.pool.MaximumAddresses)
 }

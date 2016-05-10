@@ -45,14 +45,14 @@ func TestIPAM_IT(t *testing.T) {
 	}
 
 	// Concurrent goroutines
-	txn := 50
+	txn := 25
 	// Number of transactions per goroutine
 	batches := 20
 	// Number of addresses to allocate each transaction
-	count := 50
+	count := 20
 
 	// addrChan will collect the allocations
-	addrChan := make(chan []net.IPNet)
+	addrChan := make(chan []net.IP)
 	for idx := 0; idx < txn; idx++ {
 		go func() {
 			for j := 0; j < batches; j++ {
@@ -87,16 +87,15 @@ func TestIPAM_IT(t *testing.T) {
 
 	// release 50 addresses
 	released := map[string]struct{}{}
-	for cidr := range finalAddrs {
+	for addr := range finalAddrs {
 		if len(released) > count {
 			break
 		}
-		ip, ipNet, _ := net.ParseCIDR(cidr)
-		err := i.Release(ip)
+		err := i.Release(net.ParseIP(addr))
 		if err != nil {
 			t.Fatalf("Error releasing address: %v", err)
 		}
-		released[ipNet.String()] = struct{}{}
+		released[addr] = struct{}{}
 	}
 
 	// Allocate an address and assert that it was from the released addresses.

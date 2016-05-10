@@ -33,12 +33,18 @@ func bindingAddrKey(networkID, bindingID string, addr net.IP) string {
 	return path.Join(bindingListAddrKey(networkID, addr), bindingID)
 }
 
-func bindingIDKey(networkID, poolID, bindingID string) string {
+func bindingListKey(networkID, poolID string) string {
 	return path.Join(
 		PostalEtcdKeyPrefix,
 		"network", networkID,
 		"pool", poolID,
-		"bindings", bindingID,
+		"bindings",
+	)
+}
+
+func bindingIDKey(networkID, poolID, bindingID string) string {
+	return path.Join(
+		bindingListKey(networkID, poolID), bindingID,
 	)
 }
 
