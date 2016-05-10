@@ -1,4 +1,4 @@
-# Postal
+# Postal [![Circle CI](https://circleci.com/gh/jive/postal.svg?style=svg)](https://circleci.com/gh/jive/postal)
 
 Postal is a modern IPAM service made to ease the burden of address allocation and management.
 
