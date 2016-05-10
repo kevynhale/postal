@@ -44,10 +44,18 @@ import (
 type PoolManager interface {
 	// Allocate places an address into the pool to be bound in a subsequent Bind call.
 	Allocate(requestedAddress net.IP) (*api.Binding, error)
-	// Bind reserves an address such that no other Bind call can claim it.
-	// If the pool does not have enough addresses for the request and has not met it's maximum,
-	// it will attempt to allocate an additional address for the parent network block.
+	// Bind attempts to reserve a specific address.
+	// If the pool is of type FIXED and the address has not been previously allocated,
+	// the call will fail.
+	// For DYNAMIC pools, Bind will attempt to allocate the requested address if it
+	// has not been previously allocated unless the pool has hit its max address limit.
 	Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error)
+	// BindAny is very similar to Bind, except it does not take a specific address.
+	// It will instead bind an allocated address at random.
+	// Like Bind, FIXED type pools must have their addresses allocated prior to binding.
+	// If the pool does not have enough addresses for the request and is of type DYNAMIC,
+	// it will attempt to allocate an additional address for the parent network block.
+	BindAny(annotations map[string]string) (*api.Binding, error)
 	// Release will place the address back into a state where it can be bound again within the pool.
 	// If the pool is a DYNAMIC type, it will place a TTL on the binding, such that when it expires it
 	// is released back into the parent network block.
@@ -99,6 +107,48 @@ func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, erro
 	return binding.Binding, nil
 }
 
+func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding, error) {
+	existingBindings, err := pm.listBindings()
+	if err != nil {
+		return nil, errors.Wrap(err, "list bindings failed")
+	}
+
+	filteredBindings := filterBoundBindings(existingBindings)
+
+	// First, check existing unbound bindings and reuse if any exists
+	for idx := range filteredBindings {
+		err = pm.rebindBinding(filteredBindings[idx], annotations)
+		if err == nil {
+			return filteredBindings[idx].Binding, nil
+		}
+	}
+
+	if pm.pool.Type == api.Pool_FIXED {
+		return nil, errors.New("bind failed: all allocated addresses in use")
+	}
+	// No existing binding could be used, so a new address is allocated
+	if pm.CurrentSize() >= pm.MaxSize() {
+		return nil, errors.New("allocate failed: maximum addresses reached")
+	}
+	ip, err := pm.IPAM.Allocate(1)
+	if err != nil {
+		return nil, errors.Wrap(err, "allocating address from ipam failed")
+	}
+
+	binding := newBinding(&api.Binding{
+		PoolID:      pm.pool.ID,
+		ID:          uuid.NewV4().String(),
+		Annotations: annotations,
+	})
+
+	err = pm.bindBinding(binding, ip[0])
+	if err != nil {
+		return nil, errors.Wrap(err, "binding address failed")
+	}
+
+	return binding.Binding, nil
+}
+
 func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
 	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
@@ -106,67 +156,31 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 		Annotations: annotations,
 	})
 
-	if requestedAddress == nil || requestedAddress.IsUnspecified() {
-		existingBindings, err := pm.listBindings()
-		if err != nil {
-			return nil, errors.Wrap(err, "list bindings failed")
+	// Check existing bindings for requested address
+	addrBinding, err := pm.getBindingForAddr(requestedAddress)
+	if addrBinding != nil && !addrBinding.isBound() {
+		err = pm.rebindBinding(addrBinding, annotations)
+		if err == nil {
+			return addrBinding.Binding, nil
 		}
+		return nil, fmt.Errorf("address already bound")
+	}
 
-		filteredBindings := filterBoundBindings(existingBindings)
+	if pm.pool.Type == api.Pool_FIXED {
+		return nil, errors.New("bind failed: all allocated addresses in use")
+	}
 
-		// First, check existing unbound bindings and reuse if any exists
-		for idx := range filteredBindings {
-			err = pm.rebindBinding(filteredBindings[idx], annotations)
-			if err == nil {
-				return binding.Binding, nil
-			}
-		}
+	if pm.CurrentSize() >= pm.MaxSize() {
+		return nil, errors.New("allocate failed: maximum addresses reached")
+	}
+	err = pm.IPAM.Claim(requestedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "address claim failed")
+	}
 
-		if pm.pool.Type == api.Pool_FIXED {
-			return nil, errors.New("bind failed: all allocated addresses in use")
-		}
-
-		// No existing binding could be used, so a new address is allocated
-		if pm.CurrentSize() >= pm.MaxSize() {
-			return nil, errors.New("allocate failed: maximum addresses reached")
-		}
-		ip, err := pm.IPAM.Allocate(1)
-		if err != nil {
-			return nil, errors.Wrap(err, "allocating address from ipam failed")
-		}
-
-		err = pm.bindBinding(binding, ip[0])
-		if err != nil {
-			return nil, errors.Wrap(err, "binding address failed")
-		}
-
-	} else {
-		// Check existing bindings for requested address
-		addrBinding, err := pm.getBindingForAddr(requestedAddress)
-		if addrBinding != nil && !addrBinding.isBound() {
-			err = pm.rebindBinding(addrBinding, annotations)
-			if err == nil {
-				return addrBinding.Binding, nil
-			}
-			return nil, fmt.Errorf("address already bound")
-		}
-
-		if pm.pool.Type == api.Pool_FIXED {
-			return nil, errors.New("bind failed: all allocated addresses in use")
-		}
-
-		if pm.CurrentSize() >= pm.MaxSize() {
-			return nil, errors.New("allocate failed: maximum addresses reached")
-		}
-		err = pm.IPAM.Claim(requestedAddress)
-		if err != nil {
-			return nil, errors.Wrap(err, "address claim failed")
-		}
-
-		err = pm.bindBinding(binding, requestedAddress)
-		if err != nil {
-			return nil, errors.Wrap(err, "binding address failed")
-		}
+	err = pm.bindBinding(binding, requestedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "binding address failed")
 	}
 
 	return binding.Binding, nil
