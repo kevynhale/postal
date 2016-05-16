@@ -150,19 +150,19 @@ message PoolSetMinMaxResponse {
 }
 
 message LookupBindingRequest {
-	message ByID {
+	message ByIDMethod {
 		Pool.PoolID poolID = 1;
 		string ID = 2;
 	}
 
-	message ByAddress {
+	message ByAddressMethod {
 		string networkID = 1;
 		string address = 2;
 	}
 
-	oneof Lookup {
-		ByID by_id = 1;
-		ByAddress by_address = 2;
+	oneof LookupMethod {
+		ByIDMethod by_id = 1;
+		ByAddressMethod by_address = 2;
 	}
 }
 
