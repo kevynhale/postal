@@ -18,6 +18,7 @@ package postal
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/coreos/etcd/clientv3"
@@ -67,6 +68,10 @@ func (config *Config) Network(ID string) (NetworkManager, error) {
 	resp, err := config.etcd.Get(context.TODO(), networkMetaKey(ID))
 	if err != nil {
 		return nil, err
+	}
+
+	if len(resp.Kvs) != 1 {
+		return nil, errors.New("postal: network could not be found")
 	}
 
 	network := &etcdNetworkMeta{}

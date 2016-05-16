@@ -10,6 +10,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
+	"github.com/pkg/errors"
 	"github.com/twinj/uuid"
 )
 
@@ -18,7 +19,8 @@ type NetworkManager interface {
 	Pools() ([]string, error)
 	Pool(ID string) (PoolManager, error)
 	NewPool(annotations map[string]string, min, max int, poolType api.Pool_Type) (PoolManager, error)
-	Bindings(net.IP) ([]*api.Binding, error)
+	Binding(net.IP) (*api.Binding, error)
+	APINetwork() *api.Network
 }
 
 type etcdNetworkManager struct {
@@ -28,6 +30,14 @@ type etcdNetworkManager struct {
 
 	IPAM ipam.IPAM
 	etcd *clientv3.Client
+}
+
+func (nm *etcdNetworkManager) APINetwork() *api.Network {
+	return &api.Network{
+		ID:          nm.ID,
+		Annotations: nm.annotations,
+		Cidr:        nm.cidr,
+	}
 }
 
 func (nm *etcdNetworkManager) Pools() ([]string, error) {
@@ -95,16 +105,11 @@ func (nm *etcdNetworkManager) NewPool(annotations map[string]string, min, max in
 	}, nil
 }
 
-func (nm *etcdNetworkManager) Bindings(addr net.IP) ([]*api.Binding, error) {
-	resp, err := nm.etcd.KV.Get(context.Background(), bindingListAddrKey(nm.ID, addr), clientv3.WithPrefix())
+func (nm *etcdNetworkManager) Binding(addr net.IP) (*api.Binding, error) {
+	binding, err := nm.getBindingForAddr(addr)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "get binding for address %s failed", addr.String())
 	}
-	bindings := []*api.Binding{}
-	for idx := range resp.Kvs {
-		binding := &api.Binding{}
-		json.Unmarshal(resp.Kvs[idx].Value, binding)
-		bindings = append(bindings, binding)
-	}
-	return bindings, nil
+
+	return binding.Binding, nil
 }

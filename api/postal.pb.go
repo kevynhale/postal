@@ -20,6 +20,22 @@
 		NetworkAddResponse
 		NetworkRemoveRequest
 		NetworkRemoveResponse
+		PoolRangeRequest
+		PoolRangeResponse
+		PoolAddRequest
+		PoolAddResponse
+		PoolRemoveRequest
+		PoolRemoveResponse
+		PoolSetMinMaxRequest
+		PoolSetMinMaxResponse
+		LookupBindingRequest
+		LookupBindingResponse
+		AllocateAddressRequest
+		AllocateAddressResponse
+		BindAddressRequest
+		BindAddressResponse
+		ReleaseAddressRequest
+		ReleaseAddressResponse
 */
 package api
 
@@ -201,9 +217,8 @@ func (m *NetworkRangeResponse) GetNetworks() []*Network {
 }
 
 type NetworkAddRequest struct {
-	ID          string            `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
-	Annotations map[string]string `protobuf:"bytes,2,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Cidrs       string            `protobuf:"bytes,3,opt,name=cidrs,proto3" json:"cidrs,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,1,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Cidr        string            `protobuf:"bytes,2,opt,name=cidr,proto3" json:"cidr,omitempty"`
 }
 
 func (m *NetworkAddRequest) Reset()                    { *m = NetworkAddRequest{} }
@@ -251,6 +266,397 @@ func (m *NetworkRemoveResponse) String() string            { return proto.Compac
 func (*NetworkRemoveResponse) ProtoMessage()               {}
 func (*NetworkRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{10} }
 
+type PoolRangeRequest struct {
+	ID     *Pool_PoolID `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	Size_  int32        `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Offset int32        `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (m *PoolRangeRequest) Reset()                    { *m = PoolRangeRequest{} }
+func (m *PoolRangeRequest) String() string            { return proto.CompactTextString(m) }
+func (*PoolRangeRequest) ProtoMessage()               {}
+func (*PoolRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{11} }
+
+func (m *PoolRangeRequest) GetID() *Pool_PoolID {
+	if m != nil {
+		return m.ID
+	}
+	return nil
+}
+
+type PoolRangeResponse struct {
+	Pools  []*Pool `protobuf:"bytes,1,rep,name=pools" json:"pools,omitempty"`
+	Size_  int32   `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Offset int32   `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (m *PoolRangeResponse) Reset()                    { *m = PoolRangeResponse{} }
+func (m *PoolRangeResponse) String() string            { return proto.CompactTextString(m) }
+func (*PoolRangeResponse) ProtoMessage()               {}
+func (*PoolRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{12} }
+
+func (m *PoolRangeResponse) GetPools() []*Pool {
+	if m != nil {
+		return m.Pools
+	}
+	return nil
+}
+
+type PoolAddRequest struct {
+	NetworkID   string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,2,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Maximum     int32             `protobuf:"varint,3,opt,name=maximum,proto3" json:"maximum,omitempty"`
+	Type        Pool_Type         `protobuf:"varint,4,opt,name=type,proto3,enum=api.Pool_Type" json:"type,omitempty"`
+}
+
+func (m *PoolAddRequest) Reset()                    { *m = PoolAddRequest{} }
+func (m *PoolAddRequest) String() string            { return proto.CompactTextString(m) }
+func (*PoolAddRequest) ProtoMessage()               {}
+func (*PoolAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{13} }
+
+func (m *PoolAddRequest) GetAnnotations() map[string]string {
+	if m != nil {
+		return m.Annotations
+	}
+	return nil
+}
+
+type PoolAddResponse struct {
+	Pool *Pool `protobuf:"bytes,1,opt,name=pool" json:"pool,omitempty"`
+}
+
+func (m *PoolAddResponse) Reset()                    { *m = PoolAddResponse{} }
+func (m *PoolAddResponse) String() string            { return proto.CompactTextString(m) }
+func (*PoolAddResponse) ProtoMessage()               {}
+func (*PoolAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{14} }
+
+func (m *PoolAddResponse) GetPool() *Pool {
+	if m != nil {
+		return m.Pool
+	}
+	return nil
+}
+
+type PoolRemoveRequest struct {
+	ID *Pool_PoolID `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+}
+
+func (m *PoolRemoveRequest) Reset()                    { *m = PoolRemoveRequest{} }
+func (m *PoolRemoveRequest) String() string            { return proto.CompactTextString(m) }
+func (*PoolRemoveRequest) ProtoMessage()               {}
+func (*PoolRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{15} }
+
+func (m *PoolRemoveRequest) GetID() *Pool_PoolID {
+	if m != nil {
+		return m.ID
+	}
+	return nil
+}
+
+type PoolRemoveResponse struct {
+}
+
+func (m *PoolRemoveResponse) Reset()                    { *m = PoolRemoveResponse{} }
+func (m *PoolRemoveResponse) String() string            { return proto.CompactTextString(m) }
+func (*PoolRemoveResponse) ProtoMessage()               {}
+func (*PoolRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{16} }
+
+type PoolSetMinMaxRequest struct {
+	ID      *Pool_PoolID `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	Maximum int32        `protobuf:"varint,2,opt,name=maximum,proto3" json:"maximum,omitempty"`
+}
+
+func (m *PoolSetMinMaxRequest) Reset()                    { *m = PoolSetMinMaxRequest{} }
+func (m *PoolSetMinMaxRequest) String() string            { return proto.CompactTextString(m) }
+func (*PoolSetMinMaxRequest) ProtoMessage()               {}
+func (*PoolSetMinMaxRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{17} }
+
+func (m *PoolSetMinMaxRequest) GetID() *Pool_PoolID {
+	if m != nil {
+		return m.ID
+	}
+	return nil
+}
+
+type PoolSetMinMaxResponse struct {
+}
+
+func (m *PoolSetMinMaxResponse) Reset()                    { *m = PoolSetMinMaxResponse{} }
+func (m *PoolSetMinMaxResponse) String() string            { return proto.CompactTextString(m) }
+func (*PoolSetMinMaxResponse) ProtoMessage()               {}
+func (*PoolSetMinMaxResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{18} }
+
+type LookupBindingRequest struct {
+	// Types that are valid to be assigned to Lookup:
+	//	*LookupBindingRequest_ById
+	//	*LookupBindingRequest_ByAddress_
+	Lookup isLookupBindingRequest_Lookup `protobuf_oneof:"Lookup"`
+}
+
+func (m *LookupBindingRequest) Reset()                    { *m = LookupBindingRequest{} }
+func (m *LookupBindingRequest) String() string            { return proto.CompactTextString(m) }
+func (*LookupBindingRequest) ProtoMessage()               {}
+func (*LookupBindingRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{19} }
+
+type isLookupBindingRequest_Lookup interface {
+	isLookupBindingRequest_Lookup()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type LookupBindingRequest_ById struct {
+	ById *LookupBindingRequest_ByID `protobuf:"bytes,1,opt,name=by_id,oneof"`
+}
+type LookupBindingRequest_ByAddress_ struct {
+	ByAddress *LookupBindingRequest_ByAddress `protobuf:"bytes,2,opt,name=by_address,oneof"`
+}
+
+func (*LookupBindingRequest_ById) isLookupBindingRequest_Lookup()       {}
+func (*LookupBindingRequest_ByAddress_) isLookupBindingRequest_Lookup() {}
+
+func (m *LookupBindingRequest) GetLookup() isLookupBindingRequest_Lookup {
+	if m != nil {
+		return m.Lookup
+	}
+	return nil
+}
+
+func (m *LookupBindingRequest) GetById() *LookupBindingRequest_ByID {
+	if x, ok := m.GetLookup().(*LookupBindingRequest_ById); ok {
+		return x.ById
+	}
+	return nil
+}
+
+func (m *LookupBindingRequest) GetByAddress() *LookupBindingRequest_ByAddress {
+	if x, ok := m.GetLookup().(*LookupBindingRequest_ByAddress_); ok {
+		return x.ByAddress
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*LookupBindingRequest) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _LookupBindingRequest_OneofMarshaler, _LookupBindingRequest_OneofUnmarshaler, _LookupBindingRequest_OneofSizer, []interface{}{
+		(*LookupBindingRequest_ById)(nil),
+		(*LookupBindingRequest_ByAddress_)(nil),
+	}
+}
+
+func _LookupBindingRequest_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*LookupBindingRequest)
+	// Lookup
+	switch x := m.Lookup.(type) {
+	case *LookupBindingRequest_ById:
+		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ById); err != nil {
+			return err
+		}
+	case *LookupBindingRequest_ByAddress_:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ByAddress); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("LookupBindingRequest.Lookup has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _LookupBindingRequest_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*LookupBindingRequest)
+	switch tag {
+	case 1: // Lookup.by_id
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(LookupBindingRequest_ByID)
+		err := b.DecodeMessage(msg)
+		m.Lookup = &LookupBindingRequest_ById{msg}
+		return true, err
+	case 2: // Lookup.by_address
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(LookupBindingRequest_ByAddress)
+		err := b.DecodeMessage(msg)
+		m.Lookup = &LookupBindingRequest_ByAddress_{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _LookupBindingRequest_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*LookupBindingRequest)
+	// Lookup
+	switch x := m.Lookup.(type) {
+	case *LookupBindingRequest_ById:
+		s := proto.Size(x.ById)
+		n += proto.SizeVarint(1<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *LookupBindingRequest_ByAddress_:
+		s := proto.Size(x.ByAddress)
+		n += proto.SizeVarint(2<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
+type LookupBindingRequest_ByID struct {
+	PoolID *Pool_PoolID `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
+	ID     string       `protobuf:"bytes,2,opt,name=ID,proto3" json:"ID,omitempty"`
+}
+
+func (m *LookupBindingRequest_ByID) Reset()         { *m = LookupBindingRequest_ByID{} }
+func (m *LookupBindingRequest_ByID) String() string { return proto.CompactTextString(m) }
+func (*LookupBindingRequest_ByID) ProtoMessage()    {}
+func (*LookupBindingRequest_ByID) Descriptor() ([]byte, []int) {
+	return fileDescriptorPostal, []int{19, 0}
+}
+
+func (m *LookupBindingRequest_ByID) GetPoolID() *Pool_PoolID {
+	if m != nil {
+		return m.PoolID
+	}
+	return nil
+}
+
+type LookupBindingRequest_ByAddress struct {
+	NetworkID string `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Address   string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *LookupBindingRequest_ByAddress) Reset()         { *m = LookupBindingRequest_ByAddress{} }
+func (m *LookupBindingRequest_ByAddress) String() string { return proto.CompactTextString(m) }
+func (*LookupBindingRequest_ByAddress) ProtoMessage()    {}
+func (*LookupBindingRequest_ByAddress) Descriptor() ([]byte, []int) {
+	return fileDescriptorPostal, []int{19, 1}
+}
+
+type LookupBindingResponse struct {
+	Binding *Binding `protobuf:"bytes,1,opt,name=binding" json:"binding,omitempty"`
+}
+
+func (m *LookupBindingResponse) Reset()                    { *m = LookupBindingResponse{} }
+func (m *LookupBindingResponse) String() string            { return proto.CompactTextString(m) }
+func (*LookupBindingResponse) ProtoMessage()               {}
+func (*LookupBindingResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{20} }
+
+func (m *LookupBindingResponse) GetBinding() *Binding {
+	if m != nil {
+		return m.Binding
+	}
+	return nil
+}
+
+type AllocateAddressRequest struct {
+	PoolID  *Pool_PoolID `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
+	Address string       `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *AllocateAddressRequest) Reset()                    { *m = AllocateAddressRequest{} }
+func (m *AllocateAddressRequest) String() string            { return proto.CompactTextString(m) }
+func (*AllocateAddressRequest) ProtoMessage()               {}
+func (*AllocateAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{21} }
+
+func (m *AllocateAddressRequest) GetPoolID() *Pool_PoolID {
+	if m != nil {
+		return m.PoolID
+	}
+	return nil
+}
+
+type AllocateAddressResponse struct {
+	Binding *Binding `protobuf:"bytes,1,opt,name=binding" json:"binding,omitempty"`
+}
+
+func (m *AllocateAddressResponse) Reset()                    { *m = AllocateAddressResponse{} }
+func (m *AllocateAddressResponse) String() string            { return proto.CompactTextString(m) }
+func (*AllocateAddressResponse) ProtoMessage()               {}
+func (*AllocateAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{22} }
+
+func (m *AllocateAddressResponse) GetBinding() *Binding {
+	if m != nil {
+		return m.Binding
+	}
+	return nil
+}
+
+type BindAddressRequest struct {
+	PoolID      *Pool_PoolID      `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
+	Address     string            `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,3,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *BindAddressRequest) Reset()                    { *m = BindAddressRequest{} }
+func (m *BindAddressRequest) String() string            { return proto.CompactTextString(m) }
+func (*BindAddressRequest) ProtoMessage()               {}
+func (*BindAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{23} }
+
+func (m *BindAddressRequest) GetPoolID() *Pool_PoolID {
+	if m != nil {
+		return m.PoolID
+	}
+	return nil
+}
+
+func (m *BindAddressRequest) GetAnnotations() map[string]string {
+	if m != nil {
+		return m.Annotations
+	}
+	return nil
+}
+
+type BindAddressResponse struct {
+	Binding *Binding `protobuf:"bytes,1,opt,name=binding" json:"binding,omitempty"`
+}
+
+func (m *BindAddressResponse) Reset()                    { *m = BindAddressResponse{} }
+func (m *BindAddressResponse) String() string            { return proto.CompactTextString(m) }
+func (*BindAddressResponse) ProtoMessage()               {}
+func (*BindAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{24} }
+
+func (m *BindAddressResponse) GetBinding() *Binding {
+	if m != nil {
+		return m.Binding
+	}
+	return nil
+}
+
+type ReleaseAddressRequest struct {
+	PoolID    *Pool_PoolID `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
+	BindingID string       `protobuf:"bytes,2,opt,name=bindingID,proto3" json:"bindingID,omitempty"`
+	Address   string       `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Hard      bool         `protobuf:"varint,4,opt,name=hard,proto3" json:"hard,omitempty"`
+}
+
+func (m *ReleaseAddressRequest) Reset()                    { *m = ReleaseAddressRequest{} }
+func (m *ReleaseAddressRequest) String() string            { return proto.CompactTextString(m) }
+func (*ReleaseAddressRequest) ProtoMessage()               {}
+func (*ReleaseAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{25} }
+
+func (m *ReleaseAddressRequest) GetPoolID() *Pool_PoolID {
+	if m != nil {
+		return m.PoolID
+	}
+	return nil
+}
+
+type ReleaseAddressResponse struct {
+}
+
+func (m *ReleaseAddressResponse) Reset()                    { *m = ReleaseAddressResponse{} }
+func (m *ReleaseAddressResponse) String() string            { return proto.CompactTextString(m) }
+func (*ReleaseAddressResponse) ProtoMessage()               {}
+func (*ReleaseAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{26} }
+
 func init() {
 	proto.RegisterType((*Error)(nil), "api.Error")
 	proto.RegisterType((*Empty)(nil), "api.Empty")
@@ -264,6 +670,24 @@ func init() {
 	proto.RegisterType((*NetworkAddResponse)(nil), "api.NetworkAddResponse")
 	proto.RegisterType((*NetworkRemoveRequest)(nil), "api.NetworkRemoveRequest")
 	proto.RegisterType((*NetworkRemoveResponse)(nil), "api.NetworkRemoveResponse")
+	proto.RegisterType((*PoolRangeRequest)(nil), "api.PoolRangeRequest")
+	proto.RegisterType((*PoolRangeResponse)(nil), "api.PoolRangeResponse")
+	proto.RegisterType((*PoolAddRequest)(nil), "api.PoolAddRequest")
+	proto.RegisterType((*PoolAddResponse)(nil), "api.PoolAddResponse")
+	proto.RegisterType((*PoolRemoveRequest)(nil), "api.PoolRemoveRequest")
+	proto.RegisterType((*PoolRemoveResponse)(nil), "api.PoolRemoveResponse")
+	proto.RegisterType((*PoolSetMinMaxRequest)(nil), "api.PoolSetMinMaxRequest")
+	proto.RegisterType((*PoolSetMinMaxResponse)(nil), "api.PoolSetMinMaxResponse")
+	proto.RegisterType((*LookupBindingRequest)(nil), "api.LookupBindingRequest")
+	proto.RegisterType((*LookupBindingRequest_ByID)(nil), "api.LookupBindingRequest.ByID")
+	proto.RegisterType((*LookupBindingRequest_ByAddress)(nil), "api.LookupBindingRequest.ByAddress")
+	proto.RegisterType((*LookupBindingResponse)(nil), "api.LookupBindingResponse")
+	proto.RegisterType((*AllocateAddressRequest)(nil), "api.AllocateAddressRequest")
+	proto.RegisterType((*AllocateAddressResponse)(nil), "api.AllocateAddressResponse")
+	proto.RegisterType((*BindAddressRequest)(nil), "api.BindAddressRequest")
+	proto.RegisterType((*BindAddressResponse)(nil), "api.BindAddressResponse")
+	proto.RegisterType((*ReleaseAddressRequest)(nil), "api.ReleaseAddressRequest")
+	proto.RegisterType((*ReleaseAddressResponse)(nil), "api.ReleaseAddressResponse")
 	proto.RegisterEnum("api.Pool_Type", Pool_Type_name, Pool_Type_value)
 }
 
@@ -281,6 +705,14 @@ type PostalClient interface {
 	NetworkRange(ctx context.Context, in *NetworkRangeRequest, opts ...grpc.CallOption) (*NetworkRangeResponse, error)
 	NetworkAdd(ctx context.Context, in *NetworkAddRequest, opts ...grpc.CallOption) (*NetworkAddResponse, error)
 	NetworkRemove(ctx context.Context, in *NetworkRemoveRequest, opts ...grpc.CallOption) (*NetworkRemoveResponse, error)
+	PoolRange(ctx context.Context, in *PoolRangeRequest, opts ...grpc.CallOption) (*PoolRangeResponse, error)
+	PoolAdd(ctx context.Context, in *PoolAddRequest, opts ...grpc.CallOption) (*PoolAddResponse, error)
+	PoolRemove(ctx context.Context, in *PoolRemoveRequest, opts ...grpc.CallOption) (*PoolRemoveResponse, error)
+	PoolSetMax(ctx context.Context, in *PoolSetMinMaxRequest, opts ...grpc.CallOption) (*PoolSetMinMaxResponse, error)
+	LookupBinding(ctx context.Context, in *LookupBindingRequest, opts ...grpc.CallOption) (*LookupBindingResponse, error)
+	AllocateAddress(ctx context.Context, in *AllocateAddressRequest, opts ...grpc.CallOption) (*AllocateAddressResponse, error)
+	BindAddress(ctx context.Context, in *BindAddressRequest, opts ...grpc.CallOption) (*BindAddressResponse, error)
+	ReleaseAddress(ctx context.Context, in *ReleaseAddressRequest, opts ...grpc.CallOption) (*ReleaseAddressResponse, error)
 }
 
 type postalClient struct {
@@ -318,12 +750,92 @@ func (c *postalClient) NetworkRemove(ctx context.Context, in *NetworkRemoveReque
 	return out, nil
 }
 
+func (c *postalClient) PoolRange(ctx context.Context, in *PoolRangeRequest, opts ...grpc.CallOption) (*PoolRangeResponse, error) {
+	out := new(PoolRangeResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/PoolRange", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) PoolAdd(ctx context.Context, in *PoolAddRequest, opts ...grpc.CallOption) (*PoolAddResponse, error) {
+	out := new(PoolAddResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/PoolAdd", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) PoolRemove(ctx context.Context, in *PoolRemoveRequest, opts ...grpc.CallOption) (*PoolRemoveResponse, error) {
+	out := new(PoolRemoveResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/PoolRemove", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) PoolSetMax(ctx context.Context, in *PoolSetMinMaxRequest, opts ...grpc.CallOption) (*PoolSetMinMaxResponse, error) {
+	out := new(PoolSetMinMaxResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/PoolSetMax", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) LookupBinding(ctx context.Context, in *LookupBindingRequest, opts ...grpc.CallOption) (*LookupBindingResponse, error) {
+	out := new(LookupBindingResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/LookupBinding", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) AllocateAddress(ctx context.Context, in *AllocateAddressRequest, opts ...grpc.CallOption) (*AllocateAddressResponse, error) {
+	out := new(AllocateAddressResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/AllocateAddress", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) BindAddress(ctx context.Context, in *BindAddressRequest, opts ...grpc.CallOption) (*BindAddressResponse, error) {
+	out := new(BindAddressResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/BindAddress", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) ReleaseAddress(ctx context.Context, in *ReleaseAddressRequest, opts ...grpc.CallOption) (*ReleaseAddressResponse, error) {
+	out := new(ReleaseAddressResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/ReleaseAddress", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Postal service
 
 type PostalServer interface {
 	NetworkRange(context.Context, *NetworkRangeRequest) (*NetworkRangeResponse, error)
 	NetworkAdd(context.Context, *NetworkAddRequest) (*NetworkAddResponse, error)
 	NetworkRemove(context.Context, *NetworkRemoveRequest) (*NetworkRemoveResponse, error)
+	PoolRange(context.Context, *PoolRangeRequest) (*PoolRangeResponse, error)
+	PoolAdd(context.Context, *PoolAddRequest) (*PoolAddResponse, error)
+	PoolRemove(context.Context, *PoolRemoveRequest) (*PoolRemoveResponse, error)
+	PoolSetMax(context.Context, *PoolSetMinMaxRequest) (*PoolSetMinMaxResponse, error)
+	LookupBinding(context.Context, *LookupBindingRequest) (*LookupBindingResponse, error)
+	AllocateAddress(context.Context, *AllocateAddressRequest) (*AllocateAddressResponse, error)
+	BindAddress(context.Context, *BindAddressRequest) (*BindAddressResponse, error)
+	ReleaseAddress(context.Context, *ReleaseAddressRequest) (*ReleaseAddressResponse, error)
 }
 
 func RegisterPostalServer(s *grpc.Server, srv PostalServer) {
@@ -384,6 +896,150 @@ func _Postal_NetworkRemove_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Postal_PoolRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).PoolRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/PoolRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).PoolRange(ctx, req.(*PoolRangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_PoolAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).PoolAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/PoolAdd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).PoolAdd(ctx, req.(*PoolAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_PoolRemove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolRemoveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).PoolRemove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/PoolRemove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).PoolRemove(ctx, req.(*PoolRemoveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_PoolSetMax_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolSetMinMaxRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).PoolSetMax(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/PoolSetMax",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).PoolSetMax(ctx, req.(*PoolSetMinMaxRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_LookupBinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LookupBindingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).LookupBinding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/LookupBinding",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).LookupBinding(ctx, req.(*LookupBindingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_AllocateAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllocateAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).AllocateAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/AllocateAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).AllocateAddress(ctx, req.(*AllocateAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_BindAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).BindAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/BindAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).BindAddress(ctx, req.(*BindAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_ReleaseAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReleaseAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).ReleaseAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/ReleaseAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).ReleaseAddress(ctx, req.(*ReleaseAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Postal_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "api.Postal",
 	HandlerType: (*PostalServer)(nil),
@@ -399,6 +1055,38 @@ var _Postal_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NetworkRemove",
 			Handler:    _Postal_NetworkRemove_Handler,
+		},
+		{
+			MethodName: "PoolRange",
+			Handler:    _Postal_PoolRange_Handler,
+		},
+		{
+			MethodName: "PoolAdd",
+			Handler:    _Postal_PoolAdd_Handler,
+		},
+		{
+			MethodName: "PoolRemove",
+			Handler:    _Postal_PoolRemove_Handler,
+		},
+		{
+			MethodName: "PoolSetMax",
+			Handler:    _Postal_PoolSetMax_Handler,
+		},
+		{
+			MethodName: "LookupBinding",
+			Handler:    _Postal_LookupBinding_Handler,
+		},
+		{
+			MethodName: "AllocateAddress",
+			Handler:    _Postal_AllocateAddress_Handler,
+		},
+		{
+			MethodName: "BindAddress",
+			Handler:    _Postal_BindAddress_Handler,
+		},
+		{
+			MethodName: "ReleaseAddress",
+			Handler:    _Postal_ReleaseAddress_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
@@ -749,15 +1437,9 @@ func (m *NetworkAddRequest) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ID) > 0 {
-		data[i] = 0xa
-		i++
-		i = encodeVarintPostal(data, i, uint64(len(m.ID)))
-		i += copy(data[i:], m.ID)
-	}
 	if len(m.Annotations) > 0 {
 		for k, _ := range m.Annotations {
-			data[i] = 0x12
+			data[i] = 0xa
 			i++
 			v := m.Annotations[k]
 			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
@@ -772,11 +1454,11 @@ func (m *NetworkAddRequest) MarshalTo(data []byte) (int, error) {
 			i += copy(data[i:], v)
 		}
 	}
-	if len(m.Cidrs) > 0 {
-		data[i] = 0x1a
+	if len(m.Cidr) > 0 {
+		data[i] = 0x12
 		i++
-		i = encodeVarintPostal(data, i, uint64(len(m.Cidrs)))
-		i += copy(data[i:], m.Cidrs)
+		i = encodeVarintPostal(data, i, uint64(len(m.Cidr)))
+		i += copy(data[i:], m.Cidr)
 	}
 	return i, nil
 }
@@ -844,6 +1526,614 @@ func (m *NetworkRemoveResponse) Marshal() (data []byte, err error) {
 }
 
 func (m *NetworkRemoveResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
+func (m *PoolRangeRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolRangeRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.ID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.ID.Size()))
+		n4, err := m.ID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	if m.Size_ != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Size_))
+	}
+	if m.Offset != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Offset))
+	}
+	return i, nil
+}
+
+func (m *PoolRangeResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolRangeResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Pools) > 0 {
+		for _, msg := range m.Pools {
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(data[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.Size_ != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Size_))
+	}
+	if m.Offset != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Offset))
+	}
+	return i, nil
+}
+
+func (m *PoolAddRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolAddRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if len(m.Annotations) > 0 {
+		for k, _ := range m.Annotations {
+			data[i] = 0x12
+			i++
+			v := m.Annotations[k]
+			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			i = encodeVarintPostal(data, i, uint64(mapSize))
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(k)))
+			i += copy(data[i:], k)
+			data[i] = 0x12
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(v)))
+			i += copy(data[i:], v)
+		}
+	}
+	if m.Maximum != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Maximum))
+	}
+	if m.Type != 0 {
+		data[i] = 0x20
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Type))
+	}
+	return i, nil
+}
+
+func (m *PoolAddResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolAddResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Pool != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Pool.Size()))
+		n5, err := m.Pool.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	return i, nil
+}
+
+func (m *PoolRemoveRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolRemoveRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.ID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.ID.Size()))
+		n6, err := m.ID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
+	return i, nil
+}
+
+func (m *PoolRemoveResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolRemoveResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
+func (m *PoolSetMinMaxRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolSetMinMaxRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.ID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.ID.Size()))
+		n7, err := m.ID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	if m.Maximum != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Maximum))
+	}
+	return i, nil
+}
+
+func (m *PoolSetMinMaxResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *PoolSetMinMaxResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
+func (m *LookupBindingRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *LookupBindingRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Lookup != nil {
+		nn8, err := m.Lookup.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += nn8
+	}
+	return i, nil
+}
+
+func (m *LookupBindingRequest_ById) MarshalTo(data []byte) (int, error) {
+	i := 0
+	if m.ById != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.ById.Size()))
+		n9, err := m.ById.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n9
+	}
+	return i, nil
+}
+func (m *LookupBindingRequest_ByAddress_) MarshalTo(data []byte) (int, error) {
+	i := 0
+	if m.ByAddress != nil {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.ByAddress.Size()))
+		n10, err := m.ByAddress.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n10
+	}
+	return i, nil
+}
+func (m *LookupBindingRequest_ByID) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *LookupBindingRequest_ByID) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
+		n11, err := m.PoolID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n11
+	}
+	if len(m.ID) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.ID)))
+		i += copy(data[i:], m.ID)
+	}
+	return i, nil
+}
+
+func (m *LookupBindingRequest_ByAddress) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *LookupBindingRequest_ByAddress) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if len(m.Address) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Address)))
+		i += copy(data[i:], m.Address)
+	}
+	return i, nil
+}
+
+func (m *LookupBindingResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *LookupBindingResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Binding != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Binding.Size()))
+		n12, err := m.Binding.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n12
+	}
+	return i, nil
+}
+
+func (m *AllocateAddressRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *AllocateAddressRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
+		n13, err := m.PoolID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n13
+	}
+	if len(m.Address) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Address)))
+		i += copy(data[i:], m.Address)
+	}
+	return i, nil
+}
+
+func (m *AllocateAddressResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *AllocateAddressResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Binding != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Binding.Size()))
+		n14, err := m.Binding.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n14
+	}
+	return i, nil
+}
+
+func (m *BindAddressRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *BindAddressRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
+		n15, err := m.PoolID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n15
+	}
+	if len(m.Address) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Address)))
+		i += copy(data[i:], m.Address)
+	}
+	if len(m.Annotations) > 0 {
+		for k, _ := range m.Annotations {
+			data[i] = 0x1a
+			i++
+			v := m.Annotations[k]
+			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			i = encodeVarintPostal(data, i, uint64(mapSize))
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(k)))
+			i += copy(data[i:], k)
+			data[i] = 0x12
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(v)))
+			i += copy(data[i:], v)
+		}
+	}
+	return i, nil
+}
+
+func (m *BindAddressResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *BindAddressResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Binding != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Binding.Size()))
+		n16, err := m.Binding.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n16
+	}
+	return i, nil
+}
+
+func (m *ReleaseAddressRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReleaseAddressRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
+		n17, err := m.PoolID.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n17
+	}
+	if len(m.BindingID) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.BindingID)))
+		i += copy(data[i:], m.BindingID)
+	}
+	if len(m.Address) > 0 {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Address)))
+		i += copy(data[i:], m.Address)
+	}
+	if m.Hard {
+		data[i] = 0x20
+		i++
+		if m.Hard {
+			data[i] = 1
+		} else {
+			data[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *ReleaseAddressResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReleaseAddressResponse) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -1032,10 +2322,6 @@ func (m *NetworkRangeResponse) Size() (n int) {
 func (m *NetworkAddRequest) Size() (n int) {
 	var l int
 	_ = l
-	l = len(m.ID)
-	if l > 0 {
-		n += 1 + l + sovPostal(uint64(l))
-	}
 	if len(m.Annotations) > 0 {
 		for k, v := range m.Annotations {
 			_ = k
@@ -1044,7 +2330,7 @@ func (m *NetworkAddRequest) Size() (n int) {
 			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
 		}
 	}
-	l = len(m.Cidrs)
+	l = len(m.Cidr)
 	if l > 0 {
 		n += 1 + l + sovPostal(uint64(l))
 	}
@@ -1072,6 +2358,257 @@ func (m *NetworkRemoveRequest) Size() (n int) {
 }
 
 func (m *NetworkRemoveResponse) Size() (n int) {
+	var l int
+	_ = l
+	return n
+}
+
+func (m *PoolRangeRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.ID != nil {
+		l = m.ID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovPostal(uint64(m.Size_))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovPostal(uint64(m.Offset))
+	}
+	return n
+}
+
+func (m *PoolRangeResponse) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Pools) > 0 {
+		for _, e := range m.Pools {
+			l = e.Size()
+			n += 1 + l + sovPostal(uint64(l))
+		}
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovPostal(uint64(m.Size_))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovPostal(uint64(m.Offset))
+	}
+	return n
+}
+
+func (m *PoolAddRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if len(m.Annotations) > 0 {
+		for k, v := range m.Annotations {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
+		}
+	}
+	if m.Maximum != 0 {
+		n += 1 + sovPostal(uint64(m.Maximum))
+	}
+	if m.Type != 0 {
+		n += 1 + sovPostal(uint64(m.Type))
+	}
+	return n
+}
+
+func (m *PoolAddResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Pool != nil {
+		l = m.Pool.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *PoolRemoveRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.ID != nil {
+		l = m.ID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *PoolRemoveResponse) Size() (n int) {
+	var l int
+	_ = l
+	return n
+}
+
+func (m *PoolSetMinMaxRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.ID != nil {
+		l = m.ID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if m.Maximum != 0 {
+		n += 1 + sovPostal(uint64(m.Maximum))
+	}
+	return n
+}
+
+func (m *PoolSetMinMaxResponse) Size() (n int) {
+	var l int
+	_ = l
+	return n
+}
+
+func (m *LookupBindingRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.Lookup != nil {
+		n += m.Lookup.Size()
+	}
+	return n
+}
+
+func (m *LookupBindingRequest_ById) Size() (n int) {
+	var l int
+	_ = l
+	if m.ById != nil {
+		l = m.ById.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+func (m *LookupBindingRequest_ByAddress_) Size() (n int) {
+	var l int
+	_ = l
+	if m.ByAddress != nil {
+		l = m.ByAddress.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+func (m *LookupBindingRequest_ByID) Size() (n int) {
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		l = m.PoolID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.ID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *LookupBindingRequest_ByAddress) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *LookupBindingResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Binding != nil {
+		l = m.Binding.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *AllocateAddressRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		l = m.PoolID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *AllocateAddressResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Binding != nil {
+		l = m.Binding.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *BindAddressRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		l = m.PoolID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if len(m.Annotations) > 0 {
+		for k, v := range m.Annotations {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
+		}
+	}
+	return n
+}
+
+func (m *BindAddressResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Binding != nil {
+		l = m.Binding.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *ReleaseAddressRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.PoolID != nil {
+		l = m.PoolID.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.BindingID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if m.Hard {
+		n += 2
+	}
+	return n
+}
+
+func (m *ReleaseAddressResponse) Size() (n int) {
 	var l int
 	_ = l
 	return n
@@ -2392,35 +3929,6 @@ func (m *NetworkAddRequest) Unmarshal(data []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPostal
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPostal
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ID = string(data[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Annotations", wireType)
 			}
 			var msglen int
@@ -2530,9 +4038,9 @@ func (m *NetworkAddRequest) Unmarshal(data []byte) error {
 			}
 			m.Annotations[mapkey] = mapvalue
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cidrs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Cidr", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2557,7 +4065,7 @@ func (m *NetworkAddRequest) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cidrs = string(data[iNdEx:postIndex])
+			m.Cidr = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2792,6 +4300,1971 @@ func (m *NetworkRemoveResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
+func (m *PoolRangeRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolRangeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolRangeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ID == nil {
+				m.ID = &Pool_PoolID{}
+			}
+			if err := m.ID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Size_ |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Offset |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolRangeResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolRangeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolRangeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pools", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Pools = append(m.Pools, &Pool{})
+			if err := m.Pools[len(m.Pools)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Size_ |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Offset |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolAddRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolAddRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolAddRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Annotations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var keykey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				keykey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapkey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapkey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapkey := int(stringLenmapkey)
+			if intStringLenmapkey < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapkey := iNdEx + intStringLenmapkey
+			if postStringIndexmapkey > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapkey := string(data[iNdEx:postStringIndexmapkey])
+			iNdEx = postStringIndexmapkey
+			var valuekey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				valuekey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapvalue uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapvalue := int(stringLenmapvalue)
+			if intStringLenmapvalue < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+			if postStringIndexmapvalue > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapvalue := string(data[iNdEx:postStringIndexmapvalue])
+			iNdEx = postStringIndexmapvalue
+			if m.Annotations == nil {
+				m.Annotations = make(map[string]string)
+			}
+			m.Annotations[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Maximum", wireType)
+			}
+			m.Maximum = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Maximum |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Type |= (Pool_Type(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolAddResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolAddResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolAddResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pool", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pool == nil {
+				m.Pool = &Pool{}
+			}
+			if err := m.Pool.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolRemoveRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolRemoveRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolRemoveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ID == nil {
+				m.ID = &Pool_PoolID{}
+			}
+			if err := m.ID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolRemoveResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolRemoveResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolRemoveResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolSetMinMaxRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolSetMinMaxRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolSetMinMaxRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ID == nil {
+				m.ID = &Pool_PoolID{}
+			}
+			if err := m.ID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Maximum", wireType)
+			}
+			m.Maximum = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Maximum |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoolSetMinMaxResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoolSetMinMaxResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoolSetMinMaxResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LookupBindingRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LookupBindingRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LookupBindingRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ById", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &LookupBindingRequest_ByID{}
+			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Lookup = &LookupBindingRequest_ById{v}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ByAddress", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &LookupBindingRequest_ByAddress{}
+			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Lookup = &LookupBindingRequest_ByAddress_{v}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LookupBindingRequest_ByID) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ByID: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ByID: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PoolID == nil {
+				m.PoolID = &Pool_PoolID{}
+			}
+			if err := m.PoolID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LookupBindingRequest_ByAddress) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ByAddress: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ByAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LookupBindingResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LookupBindingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LookupBindingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Binding", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Binding == nil {
+				m.Binding = &Binding{}
+			}
+			if err := m.Binding.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AllocateAddressRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AllocateAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AllocateAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PoolID == nil {
+				m.PoolID = &Pool_PoolID{}
+			}
+			if err := m.PoolID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AllocateAddressResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AllocateAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AllocateAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Binding", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Binding == nil {
+				m.Binding = &Binding{}
+			}
+			if err := m.Binding.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BindAddressRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BindAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BindAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PoolID == nil {
+				m.PoolID = &Pool_PoolID{}
+			}
+			if err := m.PoolID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Annotations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var keykey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				keykey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapkey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapkey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapkey := int(stringLenmapkey)
+			if intStringLenmapkey < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapkey := iNdEx + intStringLenmapkey
+			if postStringIndexmapkey > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapkey := string(data[iNdEx:postStringIndexmapkey])
+			iNdEx = postStringIndexmapkey
+			var valuekey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				valuekey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapvalue uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapvalue := int(stringLenmapvalue)
+			if intStringLenmapvalue < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+			if postStringIndexmapvalue > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapvalue := string(data[iNdEx:postStringIndexmapvalue])
+			iNdEx = postStringIndexmapvalue
+			if m.Annotations == nil {
+				m.Annotations = make(map[string]string)
+			}
+			m.Annotations[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BindAddressResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BindAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BindAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Binding", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Binding == nil {
+				m.Binding = &Binding{}
+			}
+			if err := m.Binding.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReleaseAddressRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReleaseAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReleaseAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolID", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PoolID == nil {
+				m.PoolID = &Pool_PoolID{}
+			}
+			if err := m.PoolID.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BindingID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BindingID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hard", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Hard = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReleaseAddressResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReleaseAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReleaseAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipPostal(data []byte) (n int, err error) {
 	l := len(data)
 	iNdEx := 0
@@ -2898,45 +6371,72 @@ var (
 )
 
 var fileDescriptorPostal = []byte{
-	// 634 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xa4, 0x54, 0xc1, 0x6e, 0xd3, 0x4c,
-	0x10, 0xae, 0x93, 0x38, 0x6e, 0x26, 0x69, 0x7f, 0x77, 0xdb, 0x9f, 0xba, 0x56, 0x1b, 0x55, 0x3e,
-	0xd0, 0x4a, 0x48, 0x8e, 0xe4, 0x5e, 0x10, 0x02, 0xa1, 0xb6, 0x69, 0xa5, 0x1c, 0xa8, 0x50, 0xd5,
-	0x03, 0x1c, 0xb7, 0xcd, 0x36, 0x2c, 0xb5, 0xbd, 0xc6, 0xbb, 0x29, 0x84, 0x57, 0xe0, 0x05, 0x38,
-	0x72, 0xe0, 0x61, 0x38, 0x72, 0xe0, 0x01, 0x10, 0x9c, 0x79, 0x07, 0xd6, 0xeb, 0x55, 0x6d, 0x37,
-	0x46, 0x48, 0xe5, 0xe0, 0xaa, 0x99, 0x99, 0xfd, 0xbe, 0x6f, 0xbf, 0x99, 0x1d, 0xd8, 0x99, 0x50,
-	0xf1, 0x6a, 0x7a, 0xee, 0x5f, 0xb0, 0x68, 0xf0, 0x9a, 0x5e, 0x93, 0x41, 0xc2, 0xb8, 0xc0, 0xe1,
-	0x00, 0x27, 0x54, 0xff, 0xeb, 0x27, 0x29, 0x13, 0x0c, 0x35, 0x65, 0xc4, 0xbb, 0x0f, 0xe6, 0x51,
-	0x9a, 0xb2, 0x14, 0xf5, 0xa0, 0x75, 0xc1, 0xc6, 0xc4, 0x31, 0xb6, 0x8d, 0xdd, 0x25, 0xf4, 0x1f,
-	0x58, 0x11, 0xe1, 0x1c, 0x4f, 0x88, 0xd3, 0x90, 0x81, 0x8e, 0x67, 0xc9, 0xba, 0x28, 0x11, 0x33,
-	0xef, 0x83, 0x01, 0xd6, 0x09, 0x11, 0x6f, 0x59, 0x7a, 0x85, 0x00, 0x1a, 0xa3, 0xa1, 0x3a, 0xd1,
-	0x41, 0x01, 0x74, 0x71, 0x1c, 0x33, 0x81, 0x05, 0x65, 0x31, 0x97, 0xa7, 0x9a, 0xbb, 0xdd, 0x60,
-	0xcb, 0x97, 0x1c, 0xbe, 0x2e, 0xf7, 0xf7, 0x8b, 0xfc, 0x51, 0x2c, 0xd2, 0x99, 0xe2, 0xa4, 0xe3,
-	0xd4, 0x69, 0x66, 0x08, 0x6e, 0x00, 0xf6, 0x5c, 0x45, 0x17, 0x9a, 0x57, 0x64, 0xa6, 0x29, 0x96,
-	0xc0, 0xbc, 0xc6, 0xe1, 0x54, 0x4b, 0x7a, 0xd4, 0x78, 0x68, 0x78, 0x9f, 0x1b, 0xd0, 0x7a, 0xce,
-	0x58, 0x88, 0x36, 0x6f, 0xa4, 0x74, 0x03, 0x5b, 0xb1, 0x66, 0x61, 0xf5, 0x67, 0x34, 0x44, 0x83,
-	0x3a, 0x71, 0x6e, 0x51, 0x36, 0xc7, 0xeb, 0x80, 0x1d, 0xe1, 0x77, 0x34, 0x9a, 0x46, 0xfb, 0xe3,
-	0x71, 0x2a, 0x9d, 0x20, 0x5c, 0xa9, 0x34, 0x55, 0x86, 0xc6, 0xd5, 0x4c, 0x4b, 0x65, 0x36, 0xa1,
-	0x25, 0x66, 0x09, 0x71, 0x4c, 0xf9, 0x6b, 0x39, 0x58, 0x2e, 0xd0, 0xcf, 0x64, 0xd4, 0xdd, 0x81,
-	0xb6, 0x16, 0xb3, 0x02, 0x9d, 0x38, 0x77, 0xe4, 0xc6, 0xbc, 0xdc, 0xc8, 0xc6, 0x9d, 0x6d, 0xe8,
-	0x43, 0x2b, 0x23, 0x91, 0x75, 0xd6, 0xf0, 0xe5, 0xc9, 0xfe, 0xb3, 0xd1, 0xa1, 0xbd, 0x80, 0x3a,
-	0x60, 0x1e, 0x8f, 0x5e, 0x1c, 0x0d, 0x6d, 0xc3, 0xfb, 0x25, 0x9b, 0x76, 0x40, 0xe3, 0x31, 0x8d,
-	0x27, 0x68, 0x1b, 0xda, 0x89, 0x12, 0xf2, 0x47, 0xb7, 0x4a, 0x6a, 0x6e, 0xb7, 0xb5, 0x59, 0x6a,
-	0xab, 0x06, 0x9c, 0x37, 0x4f, 0x0e, 0x0f, 0xce, 0xbd, 0x51, 0xce, 0x74, 0xd0, 0x1a, 0xf4, 0x70,
-	0x18, 0xb2, 0x0b, 0x2c, 0xc8, 0x19, 0x8d, 0x72, 0x87, 0x9a, 0xc8, 0x86, 0xc5, 0x73, 0x09, 0xa1,
-	0x22, 0x6d, 0x15, 0x59, 0x85, 0x6e, 0x4a, 0x42, 0x82, 0x79, 0x5e, 0x66, 0x65, 0xc1, 0x3b, 0xf9,
-	0xf1, 0x14, 0x56, 0xf5, 0xd0, 0x9d, 0xe2, 0x78, 0x42, 0x4e, 0xc9, 0x9b, 0x29, 0xe1, 0xa2, 0x32,
-	0xaf, 0x72, 0xf6, 0x38, 0x7d, 0x9f, 0x1f, 0x32, 0xd1, 0x32, 0xb4, 0xd9, 0xe5, 0x25, 0x27, 0x22,
-	0xef, 0xb2, 0x77, 0x06, 0x6b, 0x55, 0x00, 0x9e, 0x48, 0x72, 0x82, 0xfa, 0xb0, 0xa8, 0x7b, 0xc7,
-	0x25, 0x4e, 0xe6, 0x45, 0xaf, 0x3c, 0xe2, 0x7f, 0x41, 0xfd, 0x64, 0xc0, 0x8a, 0xae, 0x94, 0xc3,
-	0x53, 0xa7, 0xea, 0x71, 0xdd, 0xa0, 0xee, 0x94, 0x29, 0x8a, 0x83, 0xf3, 0xc6, 0x4b, 0x27, 0xb2,
-	0xf7, 0xc4, 0xff, 0xe1, 0x41, 0xed, 0x01, 0x2a, 0x13, 0xe9, 0x6b, 0x6f, 0x81, 0xa5, 0xaf, 0xad,
-	0x87, 0xa6, 0x72, 0x6b, 0xcf, 0x2b, 0xdc, 0x22, 0x11, 0xbb, 0xae, 0xf3, 0xdb, 0x5b, 0x87, 0xff,
-	0x6f, 0xd5, 0xe4, 0xd8, 0xc1, 0x37, 0x23, 0x7b, 0x19, 0xd9, 0x5e, 0x42, 0x87, 0xd0, 0x2b, 0xbb,
-	0x8e, 0x9c, 0x32, 0x4b, 0xb9, 0x93, 0xee, 0x46, 0x4d, 0x46, 0x6b, 0x7d, 0x02, 0x50, 0xdc, 0x00,
-	0xdd, 0xab, 0xf7, 0xce, 0x5d, 0x9f, 0x8b, 0xeb, 0xe3, 0xc7, 0xb0, 0x54, 0xd1, 0x89, 0xaa, 0x54,
-	0xe5, 0xfb, 0xb9, 0x6e, 0x5d, 0x2a, 0xc7, 0x39, 0x78, 0xf0, 0xe5, 0x47, 0xdf, 0xf8, 0x2a, 0xbf,
-	0xef, 0xf2, 0xfb, 0xf8, 0xb3, 0xbf, 0x00, 0x1b, 0x72, 0x23, 0xfb, 0xd9, 0x46, 0xf6, 0x69, 0x7c,
-	0x99, 0x62, 0x5f, 0x2f, 0x63, 0x09, 0x71, 0xde, 0x56, 0x1b, 0x79, 0xef, 0x77, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0xd8, 0x7a, 0x18, 0xaa, 0xbc, 0x05, 0x00, 0x00,
+	// 1058 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xa4, 0x57, 0xcd, 0x6e, 0x23, 0x45,
+	0x10, 0xce, 0xf8, 0x37, 0x2e, 0x27, 0x8e, 0xd3, 0x71, 0xe2, 0xd9, 0xd9, 0xac, 0xb5, 0x1a, 0x10,
+	0x89, 0x40, 0x1a, 0x0b, 0x6f, 0x84, 0x96, 0x15, 0x2b, 0x48, 0xe2, 0xac, 0xd6, 0x62, 0x13, 0xa1,
+	0x90, 0x03, 0x9c, 0xd0, 0x38, 0xee, 0x64, 0x87, 0xd8, 0x33, 0x66, 0x66, 0x1c, 0x62, 0x5e, 0x81,
+	0x23, 0x17, 0x1e, 0x80, 0xa7, 0xe0, 0xc6, 0x8d, 0x23, 0x8f, 0x80, 0xe0, 0xbc, 0x27, 0x5e, 0x80,
+	0xee, 0x9e, 0xf2, 0xcc, 0xb4, 0xdd, 0x71, 0xb2, 0xde, 0x43, 0x56, 0xd9, 0xea, 0xaa, 0xaf, 0xaa,
+	0xbf, 0xaa, 0xfa, 0x3a, 0x03, 0x3b, 0x97, 0x4e, 0xf8, 0x7a, 0xd4, 0xb5, 0xce, 0xbd, 0x41, 0xf3,
+	0x7b, 0xe7, 0x9a, 0x36, 0x87, 0x5e, 0x10, 0xda, 0xfd, 0xa6, 0x3d, 0x74, 0xf0, 0x57, 0x6b, 0xe8,
+	0x7b, 0xa1, 0x47, 0xb2, 0xcc, 0x62, 0x7e, 0x00, 0xf9, 0x23, 0xdf, 0xf7, 0x7c, 0xb2, 0x02, 0xb9,
+	0x73, 0xaf, 0x47, 0x75, 0xed, 0xb1, 0xb6, 0xbb, 0x4a, 0xd6, 0xa0, 0x38, 0xa0, 0x41, 0x60, 0x5f,
+	0x52, 0x3d, 0xc3, 0x0c, 0x25, 0xb3, 0xc8, 0xfc, 0x06, 0xc3, 0x70, 0x6c, 0xfe, 0xac, 0x41, 0xf1,
+	0x84, 0x86, 0x3f, 0x7a, 0xfe, 0x15, 0x01, 0xc8, 0x74, 0xda, 0x22, 0xa2, 0x44, 0x5a, 0x50, 0xb6,
+	0x5d, 0xd7, 0x0b, 0xed, 0xd0, 0xf1, 0xdc, 0x80, 0x45, 0x65, 0x77, 0xcb, 0xad, 0x47, 0x16, 0xcb,
+	0x61, 0xa1, 0xbb, 0xb5, 0x9f, 0x9c, 0x1f, 0xb9, 0xa1, 0x3f, 0x16, 0x39, 0x9d, 0x9e, 0xaf, 0x67,
+	0x39, 0x82, 0xd1, 0x82, 0xea, 0x8c, 0x47, 0x19, 0xb2, 0x57, 0x74, 0x8c, 0x29, 0x56, 0x21, 0x7f,
+	0x6d, 0xf7, 0x47, 0x58, 0xd2, 0xb3, 0xcc, 0x53, 0xcd, 0xfc, 0x2d, 0x03, 0xb9, 0xaf, 0x3c, 0xaf,
+	0x4f, 0xb6, 0xe3, 0x52, 0xca, 0xad, 0xaa, 0xc8, 0xca, 0xcd, 0xe2, 0x9f, 0x4e, 0x9b, 0x34, 0x55,
+	0xc5, 0x19, 0x89, 0xdb, 0x4c, 0x5e, 0x1d, 0xaa, 0x03, 0xfb, 0xc6, 0x19, 0x8c, 0x06, 0xfb, 0xbd,
+	0x9e, 0xcf, 0x98, 0xa0, 0x81, 0xa8, 0x32, 0x2f, 0x4e, 0x1c, 0x57, 0x3e, 0xc9, 0x89, 0x93, 0x6d,
+	0xc8, 0x85, 0xe3, 0x21, 0xd5, 0xf3, 0xec, 0x7f, 0x95, 0x56, 0x25, 0x41, 0x3f, 0x63, 0x56, 0x63,
+	0x07, 0x0a, 0x58, 0xcc, 0x3a, 0x94, 0xdc, 0x88, 0x91, 0x98, 0xbc, 0x88, 0xc8, 0xcc, 0xc2, 0x34,
+	0x34, 0x20, 0xc7, 0x93, 0x30, 0xbf, 0x62, 0xfb, 0xdb, 0x93, 0xfd, 0xe3, 0xce, 0x61, 0x75, 0x89,
+	0x94, 0x20, 0xff, 0xa2, 0xf3, 0xcd, 0x51, 0xbb, 0xaa, 0x99, 0x6f, 0x58, 0xd3, 0x0e, 0x1c, 0xb7,
+	0xe7, 0xb8, 0x97, 0xe4, 0x31, 0x14, 0x86, 0xa2, 0x90, 0x5b, 0xd9, 0x4a, 0x55, 0x33, 0xdd, 0xd6,
+	0x6c, 0xaa, 0xad, 0x08, 0x38, 0x4b, 0x1e, 0x1b, 0x1e, 0x3b, 0xe2, 0x46, 0x30, 0x53, 0x22, 0x35,
+	0x58, 0xb1, 0xfb, 0x7d, 0xef, 0xdc, 0x0e, 0xe9, 0x99, 0x33, 0x88, 0x18, 0xca, 0x92, 0x2a, 0x2c,
+	0x77, 0x19, 0x84, 0xb0, 0x14, 0x84, 0x65, 0x03, 0xca, 0x3e, 0xed, 0x53, 0x3b, 0x88, 0xdc, 0x8a,
+	0xdc, 0xb8, 0x10, 0x1f, 0x9f, 0xc3, 0x06, 0x0e, 0xdd, 0xa9, 0xed, 0x5e, 0xd2, 0x53, 0xfa, 0xc3,
+	0x88, 0x06, 0xa1, 0x34, 0xaf, 0x6c, 0xf6, 0x02, 0xe7, 0xa7, 0x28, 0x28, 0x4f, 0x2a, 0x50, 0xf0,
+	0x2e, 0x2e, 0x02, 0x1a, 0x46, 0x5d, 0x36, 0xcf, 0xa0, 0x26, 0x03, 0x04, 0x43, 0x96, 0x9c, 0x92,
+	0x06, 0x2c, 0x63, 0xef, 0x02, 0x86, 0xc3, 0xb9, 0x58, 0x49, 0x8f, 0xf8, 0x1d, 0xa8, 0xbf, 0x68,
+	0xb0, 0x8e, 0x9e, 0x6c, 0x78, 0x26, 0x55, 0x7d, 0x26, 0x53, 0x1c, 0xc1, 0xee, 0xa4, 0x61, 0x13,
+	0xe7, 0xdb, 0x77, 0x68, 0xf1, 0xe1, 0x79, 0x02, 0x24, 0x9d, 0x07, 0x6f, 0xfa, 0x08, 0x8a, 0x78,
+	0x53, 0x9c, 0x13, 0xe9, 0xa2, 0xa6, 0x99, 0x10, 0x44, 0x07, 0xde, 0xb5, 0x8a, 0x62, 0xb3, 0x0e,
+	0x9b, 0x53, 0x3e, 0x11, 0xb6, 0x79, 0x02, 0x55, 0x3e, 0x6a, 0x52, 0x6f, 0xe6, 0x2f, 0xf0, 0x7c,
+	0x5e, 0xbf, 0x84, 0xf5, 0x14, 0x1e, 0x5e, 0x40, 0x87, 0x3c, 0x9f, 0xf3, 0x09, 0xa1, 0xa5, 0x18,
+	0xf3, 0x0e, 0xb0, 0x3f, 0x34, 0xa8, 0x70, 0xb7, 0x54, 0x87, 0x14, 0x1b, 0xfb, 0xa9, 0x4a, 0x51,
+	0xde, 0x8f, 0x73, 0xcc, 0xeb, 0x18, 0xd7, 0xd6, 0x48, 0x5b, 0x50, 0x52, 0x26, 0xc2, 0x91, 0x53,
+	0x0a, 0xc7, 0x22, 0x2d, 0xfd, 0x10, 0xd6, 0xe2, 0x2a, 0x90, 0x8e, 0x3a, 0xe4, 0x38, 0x1d, 0xc8,
+	0x70, 0xc2, 0x86, 0xf9, 0x31, 0x92, 0x27, 0xb5, 0x71, 0x6e, 0x37, 0xcc, 0x1a, 0x90, 0x74, 0x08,
+	0x76, 0xf5, 0x08, 0x6a, 0xdc, 0xfa, 0x35, 0x0d, 0x8f, 0x1d, 0xf7, 0xd8, 0xbe, 0xb9, 0x5f, 0x67,
+	0x53, 0x6c, 0x88, 0x7e, 0xf0, 0xa9, 0x99, 0x82, 0x41, 0xfc, 0xff, 0x34, 0xa8, 0xbd, 0xf2, 0xbc,
+	0xab, 0xd1, 0x10, 0x95, 0x67, 0x92, 0xa0, 0x09, 0xf9, 0xee, 0xf8, 0x3b, 0xa7, 0x87, 0x39, 0x1a,
+	0x22, 0x87, 0xca, 0xd3, 0x3a, 0x18, 0x77, 0xda, 0x2f, 0x97, 0x58, 0xf3, 0x80, 0x05, 0x4c, 0x34,
+	0x2a, 0x23, 0xa2, 0xde, 0x9b, 0x17, 0x85, 0x52, 0xff, 0x72, 0xc9, 0xd8, 0x83, 0x1c, 0x07, 0x79,
+	0x3b, 0x15, 0x35, 0x9a, 0x50, 0x8a, 0x41, 0x54, 0xd3, 0x94, 0x52, 0x4c, 0x11, 0x70, 0xb0, 0x0c,
+	0x85, 0xa8, 0x14, 0xf3, 0x13, 0xd8, 0x9c, 0x2a, 0x2a, 0x59, 0xd0, 0x6e, 0x64, 0x92, 0x16, 0x14,
+	0xdd, 0xd8, 0x4e, 0x6c, 0xed, 0xa3, 0xe6, 0x62, 0xe2, 0x09, 0x5d, 0x77, 0x97, 0x3e, 0x5d, 0x8e,
+	0xf9, 0x14, 0xea, 0x33, 0x60, 0xf7, 0x2b, 0xe3, 0x77, 0x0d, 0x08, 0xff, 0xfd, 0x9d, 0x6b, 0x20,
+	0xcf, 0x55, 0x2f, 0xd1, 0x6e, 0x9c, 0x4c, 0x4e, 0x30, 0xb3, 0x75, 0x0b, 0xad, 0xd1, 0x1e, 0x6c,
+	0x48, 0xd0, 0xf7, 0xbb, 0xf2, 0x15, 0x6c, 0x9e, 0x46, 0xaf, 0xd8, 0x5b, 0x5f, 0x9a, 0x8d, 0x06,
+	0x22, 0xc7, 0x0f, 0x70, 0x8a, 0x87, 0xec, 0xe4, 0xe1, 0x7a, 0x6d, 0xfb, 0x3d, 0xa1, 0x16, 0xcb,
+	0xa6, 0x0e, 0x5b, 0xd3, 0xc9, 0xa2, 0x2a, 0x5b, 0x6f, 0xf2, 0xfc, 0x2f, 0x0e, 0xfe, 0xf7, 0x1e,
+	0x39, 0x84, 0x95, 0xf4, 0x6b, 0x46, 0xf4, 0xb4, 0x94, 0xa7, 0x55, 0xd8, 0x78, 0xa0, 0x38, 0xc1,
+	0x5b, 0x3f, 0x07, 0x48, 0x9e, 0x09, 0xb2, 0xa5, 0x7e, 0x9f, 0x8c, 0xfa, 0x8c, 0x1d, 0xc3, 0x5f,
+	0xc0, 0xaa, 0xf4, 0x18, 0x10, 0x39, 0x55, 0x5a, 0x7d, 0x0c, 0x43, 0x75, 0x84, 0x38, 0xcf, 0xa0,
+	0x14, 0x6b, 0x3d, 0xd9, 0x8c, 0x19, 0x94, 0x6e, 0xb1, 0x35, 0x6d, 0xc6, 0xd8, 0x3d, 0x28, 0xa2,
+	0x2c, 0x92, 0x0d, 0x85, 0x54, 0x1b, 0x35, 0xd9, 0x98, 0x5c, 0x3c, 0x51, 0x3b, 0x92, 0xc2, 0x96,
+	0x6a, 0xae, 0xcf, 0xd8, 0x31, 0xfc, 0x30, 0x0a, 0xe7, 0x7a, 0x66, 0xdf, 0xe0, 0xad, 0x55, 0x3a,
+	0x69, 0x18, 0xaa, 0xa3, 0x84, 0x3d, 0x49, 0x05, 0x10, 0x47, 0x25, 0x57, 0x88, 0xa3, 0x16, 0x8d,
+	0x57, 0xb0, 0x36, 0xb5, 0xc8, 0xe4, 0xa1, 0x70, 0x57, 0x6b, 0x85, 0xb1, 0xad, 0x3e, 0x44, 0xb4,
+	0x2f, 0xa0, 0x9c, 0xda, 0x0f, 0x52, 0xbf, 0x65, 0x19, 0x0d, 0x7d, 0xf6, 0x00, 0x11, 0x3a, 0x50,
+	0x91, 0xc7, 0x97, 0x44, 0xd5, 0x2b, 0x17, 0xc8, 0x78, 0xa8, 0x3c, 0x8b, 0xa0, 0x0e, 0x3e, 0xfa,
+	0xf3, 0x9f, 0x86, 0xf6, 0x17, 0xfb, 0xf9, 0x9b, 0xfd, 0xfc, 0xfa, 0x6f, 0x63, 0x09, 0x1e, 0xb0,
+	0x4f, 0x20, 0x8b, 0x7f, 0x02, 0x59, 0x8e, 0x7b, 0xe1, 0xdb, 0x16, 0x7e, 0xfd, 0x30, 0x8c, 0x6e,
+	0x41, 0x7c, 0x02, 0x3d, 0xf9, 0x3f, 0x00, 0x00, 0xff, 0xff, 0xc0, 0xaa, 0x98, 0x66, 0x2d, 0x0d,
+	0x00, 0x00,
 }

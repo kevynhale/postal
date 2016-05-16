@@ -29,8 +29,8 @@ func bindingListAddrKey(networkID string, addr net.IP) string {
 	)
 }
 
-func bindingAddrKey(networkID, bindingID string, addr net.IP) string {
-	return path.Join(bindingListAddrKey(networkID, addr), bindingID)
+func bindingAddrKey(networkID string, addr net.IP) string {
+	return path.Join(bindingListAddrKey(networkID, addr))
 }
 
 func bindingListKey(networkID, poolID string) string {

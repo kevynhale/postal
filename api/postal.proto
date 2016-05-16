@@ -71,17 +71,15 @@ service Postal {
   rpc NetworkAdd (NetworkAddRequest) returns (NetworkAddResponse);
   rpc NetworkRemove (NetworkRemoveRequest) returns (NetworkRemoveResponse);
 
-  //rpc PoolRange (PoolRangeRequest) returns (PoolRangeResponse);
-  //rpc PoolAdd (PoolAddRequest) returns (PoolAddResponse);
-  //rpc PoolRemove (PoolRemoveRequest) returns (PoolRemoveResponse);
-  //rpc PoolSetMinMax (PoolSetMinMaxRequest) returns (PoolSetMinMaxResponse);
-  //rpc PoolGC (PoolGCRequest) returns (PoolGCResponse);
+  rpc PoolRange (PoolRangeRequest) returns (PoolRangeResponse);
+  rpc PoolAdd (PoolAddRequest) returns (PoolAddResponse);
+  rpc PoolRemove (PoolRemoveRequest) returns (PoolRemoveResponse);
+  rpc PoolSetMax (PoolSetMinMaxRequest) returns (PoolSetMinMaxResponse);
 
-  //rpc AddressRange (AddressRangeRequest) returns (AddressRangeResponse);
-  //rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
-  //rpc BindAddress (BindAddressRequest) returns (BindAddressResponse);
-  //rpc ReleaseAddress (ReleaseAddressRequest) returns (ReleaseAddressResponse);
-  //rpc RecycleAddress (RecycleAddressRequest) returns (RecycleAddressResponse);
+  rpc LookupBinding (LookupBindingRequest) returns (LookupBindingResponse);
+  rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
+  rpc BindAddress (BindAddressRequest) returns (BindAddressResponse);
+  rpc ReleaseAddress (ReleaseAddressRequest) returns (ReleaseAddressResponse);
 }
 
 message NetworkRangeRequest {
@@ -97,9 +95,8 @@ message NetworkRangeResponse {
 }
 
 message NetworkAddRequest {
-  string ID = 1;
-  map<string, string> annotations = 2;
-  string cidrs = 3;
+  map<string, string> annotations = 1;
+  string cidr = 2;
 }
 
 message NetworkAddResponse {
@@ -111,4 +108,94 @@ message NetworkRemoveRequest {
 }
 
 message NetworkRemoveResponse {
+}
+
+message PoolRangeRequest {
+	Pool.PoolID ID = 1;
+	int32 size = 2;
+  int32 offset = 3;
+}
+
+message PoolRangeResponse {
+	repeated Pool pools = 1;
+  int32 size = 2;
+  int32 offset = 3;
+}
+
+message PoolAddRequest {
+	string networkID = 1;
+	map<string, string> annotations = 2;
+	int32 maximum = 3;
+	Pool.Type type = 4;
+}
+
+message PoolAddResponse {
+	Pool pool = 1;
+}
+
+message PoolRemoveRequest {
+	Pool.PoolID ID = 1;
+}
+
+message PoolRemoveResponse {
+}
+
+message PoolSetMinMaxRequest {
+	Pool.PoolID ID = 1;
+	int32 maximum = 2;
+}
+
+message PoolSetMinMaxResponse {
+
+}
+
+message LookupBindingRequest {
+	message ByID {
+		Pool.PoolID poolID = 1;
+		string ID = 2;
+	}
+
+	message ByAddress {
+		string networkID = 1;
+		string address = 2;
+	}
+
+	oneof Lookup {
+		ByID by_id = 1;
+		ByAddress by_address = 2;
+	}
+}
+
+message LookupBindingResponse {
+	Binding binding = 1;
+}
+
+message AllocateAddressRequest {
+	Pool.PoolID poolID = 1;
+	string address = 2;
+}
+
+message AllocateAddressResponse {
+	Binding binding = 1;
+}
+
+message BindAddressRequest {
+	Pool.PoolID poolID = 1;
+	string address = 2;
+	map<string, string> annotations = 3;
+}
+
+message BindAddressResponse {
+	Binding binding = 1;
+}
+
+message ReleaseAddressRequest {
+	Pool.PoolID poolID = 1;
+	string bindingID = 2;
+	string address = 3;
+	bool hard = 4;
+}
+
+message ReleaseAddressResponse {
+
 }

@@ -74,12 +74,18 @@ type PoolManager interface {
 	MaxSize() int
 	// Type will be one of api.Pool_FIXED or api.Pool_DYNAMIC
 	Type() api.Pool_Type
+	// APIPool returns the *api.Pool that represents for the manager.
+	APIPool() *api.Pool
 }
 
 type etcdPoolManager struct {
 	etcd *clientv3.Client
 	pool *api.Pool
 	IPAM ipam.IPAM
+}
+
+func (pm *etcdPoolManager) APIPool() *api.Pool {
+	return pm.pool
 }
 
 func (pm *etcdPoolManager) ID() string {

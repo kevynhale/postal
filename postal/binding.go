@@ -120,13 +120,13 @@ func (pm *etcdPoolManager) writeBinding(binding *etcdBinding, ttl int64) error {
 	var ops []clientv3.Op
 	if ttl == HardRelease {
 		ops = []clientv3.Op{
-			clientv3.OpDelete(bindingAddrKey(binding.PoolID.NetworkID, binding.ID, net.ParseIP(binding.Address))),
+			clientv3.OpDelete(bindingAddrKey(binding.PoolID.NetworkID, net.ParseIP(binding.Address))),
 			clientv3.OpDelete(bindingIDKey(pm.pool.ID.NetworkID, pm.pool.ID.ID, binding.ID)),
 		}
 	} else {
 		ops = []clientv3.Op{
 			clientv3.OpPut(
-				bindingAddrKey(binding.PoolID.NetworkID, binding.ID, net.ParseIP(binding.Address)),
+				bindingAddrKey(binding.PoolID.NetworkID, net.ParseIP(binding.Address)),
 				bindingIDKey(binding.PoolID.NetworkID, binding.PoolID.ID, binding.ID), putOpOptions...),
 			clientv3.OpPut(bindingIDKey(
 				pm.pool.ID.NetworkID,
@@ -171,11 +171,28 @@ func (pm *etcdPoolManager) getBinding(ID string) (*etcdBinding, error) {
 }
 
 func (pm *etcdPoolManager) getBindingForAddr(addr net.IP) (*etcdBinding, error) {
-	resp, err := pm.etcd.KV.Get(context.Background(), bindingAddrKey(pm.pool.ID.NetworkID, pm.pool.ID.ID, addr))
+	resp, err := pm.etcd.KV.Get(context.Background(), bindingAddrKey(pm.pool.ID.NetworkID, addr))
 	if err != nil {
 		return nil, errors.Wrap(err, "etcd kv get failed")
 	}
 
 	bindingKey := string(resp.Kvs[0].Value)
 	return pm.getBinding(strings.Split(bindingKey, "/")[7])
+}
+
+func (nm *etcdNetworkManager) getBindingForAddr(addr net.IP) (*etcdBinding, error) {
+	resp, err := nm.etcd.KV.Get(context.Background(), bindingAddrKey(nm.ID, addr))
+	if err != nil {
+		return nil, errors.Wrap(err, "etcd kv get failed")
+	}
+
+	bindingKey := string(resp.Kvs[0].Value)
+	resp, err = nm.etcd.KV.Get(context.Background(), bindingKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "etcd kv get failed")
+	}
+
+	binding := &api.Binding{}
+	json.Unmarshal(resp.Kvs[0].Value, binding)
+	return &etcdBinding{binding, resp.Kvs[0].Version}, nil
 }
