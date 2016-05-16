@@ -62,5 +62,10 @@ func canonicalIPString(addr net.IP) string {
 			}
 		}
 	}
+
+	if len(ret) == 0 {
+		return ""
+	}
+
 	return ret[:len(ret)-1]
 }

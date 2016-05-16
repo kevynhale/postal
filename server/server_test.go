@@ -92,6 +92,195 @@ func TestSrvNetwork(t *testing.T) {
 
 func TestSrvPool(t *testing.T) {
 	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        "10.0.0.0/16",
+		})
+		assert.NoError(networkErr)
+
+		poolCount := 5
+		pools := map[string]*api.Pool{}
+		poolMax := int32(10)
+		for i := 0; i < poolCount; i++ {
+			resp, err := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+				NetworkID:   networkResp.Network.ID,
+				Annotations: map[string]string{},
+				Maximum:     poolMax,
+				Type:        api.Pool_DYNAMIC,
+			})
+
+			assert.NoError(err)
+			assert.Equal(networkResp.Network.ID, resp.Pool.ID.NetworkID)
+			assert.Equal(poolMax, resp.Pool.MaximumAddresses)
+			assert.Equal(api.Pool_DYNAMIC, resp.Pool.Type)
+			pools[resp.Pool.ID.ID] = resp.Pool
+		}
+		assert.Equal(poolCount, len(pools))
+
+		resp, err := client.PoolRange(context.TODO(), &api.PoolRangeRequest{
+			ID: &api.Pool_PoolID{
+				NetworkID: networkResp.Network.ID,
+			},
+		})
+		assert.NoError(err)
+		assert.Equal(int32(poolCount), resp.Size_)
+		assert.Equal(poolCount, len(resp.Pools))
+
+		for k, v := range pools {
+			resp, err = client.PoolRange(context.TODO(), &api.PoolRangeRequest{
+				ID: &api.Pool_PoolID{
+					NetworkID: networkResp.Network.ID,
+					ID:        k,
+				},
+			})
+			assert.NoError(err)
+			assert.Equal(int32(1), resp.Size_)
+			assert.Equal(1, len(resp.Pools))
+			assert.Equal(v.ID.NetworkID, resp.Pools[0].ID.NetworkID)
+			assert.Equal(v.ID.ID, resp.Pools[0].ID.ID)
+			assert.Equal(v.MaximumAddresses, resp.Pools[0].MaximumAddresses)
+			assert.Equal(v.Type, resp.Pools[0].Type)
+		}
+
+		resp, err = client.PoolRange(context.TODO(), &api.PoolRangeRequest{
+			ID: &api.Pool_PoolID{
+				NetworkID: networkResp.Network.ID,
+				ID:        "foo",
+			},
+		})
+		assert.Error(err)
+
+		resp, err = client.PoolRange(context.TODO(), &api.PoolRangeRequest{
+			ID: &api.Pool_PoolID{
+				NetworkID: "foo",
+			},
+		})
+		assert.Error(err)
+	})
+	test.execute(t)
+}
+
+func TestSrvDynamicPool(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     3,
+			Type:        api.Pool_DYNAMIC,
+		})
+		assert.NoError(poolErr)
+
+		// Allocated: 1
+		// Bound:     0
+		allocResp, allocErr := client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(allocErr)
+		allocatedAddr := net.ParseIP(allocResp.Binding.Address)
+		assert.False(allocatedAddr.IsUnspecified())
+		assert.True(networkCidr.Contains(allocatedAddr))
+
+		// Allocated: 0
+		// Bound:     1
+		bindResp, bindErr := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+		assert.Equal(allocResp.Binding.AllocateTime, bindResp.Binding.AllocateTime)
+		boundAddr := net.ParseIP(bindResp.Binding.Address)
+		assert.Equal(allocatedAddr, boundAddr)
+
+		// Allocated: 0
+		// Bound:     1
+		// Attempting to bind already bound address, should error
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: boundAddr.String(),
+		})
+		assert.Error(bindErr)
+
+		// Allocated: 0
+		// Bound:     2
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+
+		// Allocated: 0
+		// Bound:     3
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+
+		// Allocated: 0
+		// Bound:     4 ** over maximum, should error
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.Error(bindErr)
+
+		binding, err := client.LookupBinding(context.TODO(), &api.LookupBindingRequest{
+			LookupMethod: &api.LookupBindingRequest_ByAddress{
+				ByAddress: &api.LookupBindingRequest_ByAddressMethod{
+					NetworkID: networkResp.Network.ID,
+					Address:   allocatedAddr.String(),
+				},
+			},
+		})
+		assert.NoError(err)
+
+		// Allocated: 1
+		// Bound:     2
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: binding.Binding.ID,
+		})
+		assert.NoError(err)
+
+		// Allocated: 1
+		// Bound:     2
+		// Attempting to release non bound address should error
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			BindingID: binding.Binding.ID,
+		})
+		assert.Error(err)
+
+		// Allocated: 0
+		// Bound:     3
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+		boundAddr = net.ParseIP(bindResp.Binding.Address)
+		assert.Equal(allocatedAddr, boundAddr)
+
+		// Allocated: 0
+		// Bound:     2
+		// Hard release expires the binding immediately
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: binding.Binding.ID,
+			Hard:      true,
+		})
+		assert.NoError(err)
+
+		// Allocated: 0
+		// Bound:     3
+		// Should be a different address than the previously allocated one
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+		boundAddr = net.ParseIP(bindResp.Binding.Address)
+		assert.NotEqual(allocatedAddr, boundAddr)
 
 	})
 

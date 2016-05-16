@@ -58,10 +58,14 @@ func (nm *etcdNetworkManager) Pool(ID string) (PoolManager, error) {
 		return nil, err
 	}
 
+	if len(resp.Kvs) != 1 {
+		return nil, errors.New("pool not found")
+	}
+
 	pool := &api.Pool{}
 	err = json.Unmarshal(resp.Kvs[0].Value, pool)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unmarshal failed")
 	}
 
 	return &etcdPoolManager{
@@ -83,7 +87,7 @@ func (nm *etcdNetworkManager) NewPool(annotations map[string]string, min, max in
 		},
 	}
 
-	poolBytes, err := pool.Marshal()
+	poolBytes, err := json.Marshal(pool)
 	if err != nil {
 		return nil, err
 	}

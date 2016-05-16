@@ -162,6 +162,10 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 		Annotations: annotations,
 	})
 
+	if requestedAddress == nil || requestedAddress.IsUnspecified() {
+		return nil, errors.New("bind failed: requestedAddress is unspecified")
+	}
+
 	// Check existing bindings for requested address
 	addrBinding, err := pm.getBindingForAddr(requestedAddress)
 	if addrBinding != nil && !addrBinding.isBound() {
@@ -179,6 +183,7 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 	if pm.CurrentSize() >= pm.MaxSize() {
 		return nil, errors.New("allocate failed: maximum addresses reached")
 	}
+
 	err = pm.IPAM.Claim(requestedAddress)
 	if err != nil {
 		return nil, errors.Wrap(err, "address claim failed")

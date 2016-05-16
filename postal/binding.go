@@ -91,8 +91,8 @@ func (pm *etcdPoolManager) bindBinding(binding *etcdBinding, addr net.IP) error 
 }
 
 func (pm *etcdPoolManager) rebindBinding(binding *etcdBinding, annotations map[string]string) error {
-	binding.Annotations = annotations
-	binding.BindTime = time.Now().UTC().UnixNano()
+	binding.Binding.Annotations = annotations
+	binding.Binding.BindTime = time.Now().UTC().UnixNano()
 	return pm.writeBinding(binding, NoTTL)
 }
 
@@ -102,7 +102,7 @@ func (pm *etcdPoolManager) releaseBinding(binding *etcdBinding, ttl int64) error
 }
 
 func (pm *etcdPoolManager) writeBinding(binding *etcdBinding, ttl int64) error {
-	data, err := binding.Marshal()
+	data, err := json.Marshal(binding)
 	if err != nil {
 		return errors.Wrap(err, "marshalling binding failed")
 	}
@@ -165,6 +165,10 @@ func (pm *etcdPoolManager) getBinding(ID string) (*etcdBinding, error) {
 		return nil, errors.Wrap(err, "etcd kv get failed")
 	}
 
+	if len(resp.Kvs) == 0 {
+		return nil, errors.Errorf("failed to get binding for ID (%s)", ID)
+	}
+
 	binding := &api.Binding{}
 	json.Unmarshal(resp.Kvs[0].Value, binding)
 	return &etcdBinding{binding, resp.Kvs[0].Version}, nil
@@ -176,6 +180,10 @@ func (pm *etcdPoolManager) getBindingForAddr(addr net.IP) (*etcdBinding, error) 
 		return nil, errors.Wrap(err, "etcd kv get failed")
 	}
 
+	if len(resp.Kvs) == 0 {
+		return nil, errors.Errorf("failed to get binding for addr (%s)", addr.String())
+	}
+
 	bindingKey := string(resp.Kvs[0].Value)
 	return pm.getBinding(strings.Split(bindingKey, "/")[7])
 }
@@ -184,6 +192,10 @@ func (nm *etcdNetworkManager) getBindingForAddr(addr net.IP) (*etcdBinding, erro
 	resp, err := nm.etcd.KV.Get(context.Background(), bindingAddrKey(nm.ID, addr))
 	if err != nil {
 		return nil, errors.Wrap(err, "etcd kv get failed")
+	}
+
+	if len(resp.Kvs) == 0 {
+		return nil, errors.Errorf("failed to get binding for addr (%s)", addr.String())
 	}
 
 	bindingKey := string(resp.Kvs[0].Value)

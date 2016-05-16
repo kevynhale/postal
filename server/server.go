@@ -244,7 +244,7 @@ func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRe
 	var binding *api.Binding
 	addr := net.ParseIP(req.Address)
 
-	if addr.IsUnspecified() {
+	if addr == nil || addr.IsUnspecified() {
 		binding, err = pm.BindAny(req.Annotations)
 		if err != nil {
 			return nil, errors.Wrap(err, "bind failed")
