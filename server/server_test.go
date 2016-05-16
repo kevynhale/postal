@@ -286,3 +286,144 @@ func TestSrvDynamicPool(t *testing.T) {
 
 	test.execute(t)
 }
+
+func TestSrvFixedPool(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     3,
+			Type:        api.Pool_FIXED,
+		})
+		assert.NoError(poolErr)
+
+		// Allocated: 1
+		// Bound:     0
+		allocResp, allocErr := client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(allocErr)
+		allocatedAddr := net.ParseIP(allocResp.Binding.Address)
+		allocatedBinding := allocResp.Binding.ID
+		assert.False(allocatedAddr.IsUnspecified())
+		assert.True(networkCidr.Contains(allocatedAddr))
+
+		// Allocated: 0
+		// Bound:     1
+		bindResp, bindErr := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+		assert.Equal(allocResp.Binding.AllocateTime, bindResp.Binding.AllocateTime)
+		boundAddr := net.ParseIP(bindResp.Binding.Address)
+		assert.Equal(allocatedAddr, boundAddr)
+
+		// Allocated: 0
+		// Bound:     1
+		// Attempting to bind already bound address should error
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: boundAddr.String(),
+		})
+		assert.Error(bindErr)
+
+		// Allocated: 0
+		// Bound:     1
+		// Attempting to bind any address with none allocated should error
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.Error(bindErr)
+
+		// Allocated: 1
+		// Bound:     1
+		allocResp, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(allocErr)
+
+		// Allocated: 2
+		// Bound:     1
+		allocResp, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(allocErr)
+
+		// Allocated: 1
+		// Bound:     2
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+
+		// Allocated: 2 ** over maximum should error
+		// Bound:     2
+		allocResp, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.Error(allocErr)
+
+		binding, err := client.LookupBinding(context.TODO(), &api.LookupBindingRequest{
+			LookupMethod: &api.LookupBindingRequest_ById{
+				ById: &api.LookupBindingRequest_ByIDMethod{
+					PoolID: poolResp.Pool.ID,
+					ID:     allocatedBinding,
+				},
+			},
+		})
+		assert.NoError(err)
+
+		// Allocated: 2
+		// Bound:     1
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: binding.Binding.ID,
+		})
+		assert.NoError(err)
+
+		// Allocated: 2
+		// Bound:     1
+		// Attempting to release non bound address should error
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			BindingID: binding.Binding.ID,
+		})
+		assert.Error(err)
+
+		// Allocated: 1
+		// Bound:     2
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+		boundAddr = net.ParseIP(bindResp.Binding.Address)
+		assert.Equal(allocatedAddr, boundAddr)
+
+		// Allocated: 1
+		// Bound:     1
+		// Hard release expires the binding immediately
+		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: binding.Binding.ID,
+			Hard:      true,
+		})
+		assert.NoError(err)
+
+		// Allocated: 2
+		// Bound:     1
+		allocResp, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(allocErr)
+		newAllocatedAddr := net.ParseIP(allocResp.Binding.Address)
+		assert.NotEqual(allocatedAddr, newAllocatedAddr)
+	})
+
+	test.execute(t)
+}
