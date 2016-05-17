@@ -18,11 +18,13 @@ package postal
 
 import (
 	"encoding/json"
-	"errors"
-	"strings"
+
+	"regexp"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
+	"github.com/pkg/errors"
 	"github.com/twinj/uuid"
 	"golang.org/x/net/context"
 )
@@ -48,16 +50,53 @@ type etcdNetworkMeta struct {
 	Annotations map[string]string `json:"annotations"`
 }
 
-// Networks returns a list of network IDs the postal knows about
-func (config *Config) Networks() ([]string, error) {
+// Networks returns a list of filtered networks
+func (config *Config) Networks(filters map[string]string) ([]*api.Network, error) {
 	resp, err := config.etcd.Get(context.TODO(), networksKey(), clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
 
-	networks := []string{}
+	noFilter := filters == nil || len(filters) == 0
+
+	networks := []*api.Network{}
 	for idx := range resp.Kvs {
-		networks = append(networks, strings.Split(string(resp.Kvs[idx].Key), "/")[5])
+		network := &api.Network{}
+		err = json.Unmarshal(resp.Kvs[idx].Value, network)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal network")
+		}
+
+		if noFilter {
+			networks = append(networks, network)
+		} else {
+			var matched bool
+			for field, filter := range filters {
+				switch field {
+				case "_id":
+					matched, err = regexp.MatchString(filter, network.ID)
+				case "_cidr":
+					matched, err = regexp.MatchString(filter, network.Cidr)
+				default:
+					if val, ok := network.Annotations[field]; ok {
+						matched, err = regexp.MatchString(filter, val)
+					} else {
+						break
+					}
+				}
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to compile filter '%s'", filter)
+				}
+
+				if !matched {
+					break
+				}
+			}
+
+			if matched {
+				networks = append(networks, network)
+			}
+		}
 	}
 
 	return networks, nil

@@ -380,24 +380,31 @@ func TestSrvFixedPool(t *testing.T) {
 		})
 		assert.NoError(err)
 
-		// Allocated: 2
-		// Bound:     1
+		// Allocated: 0
+		// Bound:     3
+		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.NoError(bindErr)
+
+		// Allocated: 1
+		// Bound:     2
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
 			BindingID: binding.Binding.ID,
 		})
 		assert.NoError(err)
 
-		// Allocated: 2
-		// Bound:     1
+		// Allocated: 1
+		// Bound:     2
 		// Attempting to release non bound address should error
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			BindingID: binding.Binding.ID,
 		})
 		assert.Error(err)
 
-		// Allocated: 1
-		// Bound:     2
+		// Allocated: 0
+		// Bound:     3
 		bindResp, bindErr = client.BindAddress(context.TODO(), &api.BindAddressRequest{
 			PoolID: poolResp.Pool.ID,
 		})
@@ -405,8 +412,8 @@ func TestSrvFixedPool(t *testing.T) {
 		boundAddr = net.ParseIP(bindResp.Binding.Address)
 		assert.Equal(allocatedAddr, boundAddr)
 
-		// Allocated: 1
-		// Bound:     1
+		// Allocated: 0
+		// Bound:     2
 		// Hard release expires the binding immediately
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
@@ -415,8 +422,16 @@ func TestSrvFixedPool(t *testing.T) {
 		})
 		assert.NoError(err)
 
-		// Allocated: 2
-		// Bound:     1
+		// Allocated: 0
+		// Bound:     2
+		// Since we previouslly force released, there should be no allocated address to bind.
+		_, err = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.Error(err)
+
+		// Allocated: 1
+		// Bound:     2
 		allocResp, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
 			PoolID: poolResp.Pool.ID,
 		})

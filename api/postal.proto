@@ -85,13 +85,12 @@ service Postal {
 message NetworkRangeRequest {
   string ID = 1;
   int32 size = 2;
-  int32 offset = 3;
+  map<string, string> filters = 3;
 }
 
 message NetworkRangeResponse {
   repeated Network networks = 1;
   int32 size = 2;
-  int32 offset = 3;
 }
 
 message NetworkAddRequest {
@@ -113,13 +112,12 @@ message NetworkRemoveResponse {
 message PoolRangeRequest {
 	Pool.PoolID ID = 1;
 	int32 size = 2;
-  int32 offset = 3;
+  map<string, string> filters = 3;
 }
 
 message PoolRangeResponse {
 	repeated Pool pools = 1;
   int32 size = 2;
-  int32 offset = 3;
 }
 
 message PoolAddRequest {

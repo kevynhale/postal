@@ -35,21 +35,16 @@ func (srv *PostalServer) NetworkRange(ctx context.Context, req *api.NetworkRange
 		}
 		resp.Networks = []*api.Network{nm.APINetwork()}
 		resp.Size_ = 1
-		resp.Offset = 0
 		return resp, nil
 	}
 
-	ids, err := srv.config().Networks()
+	networks, err := srv.config().Networks(req.Filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve network list")
 	}
 
-	resp.Size_ = int32(len(ids))
-	resp.Offset = 0
-	resp.Networks = []*api.Network{}
-	for idx := range ids {
-		resp.Networks = append(resp.Networks, &api.Network{ID: ids[idx]})
-	}
+	resp.Size_ = int32(len(networks))
+	resp.Networks = networks
 
 	return resp, nil
 }
@@ -89,27 +84,19 @@ func (srv *PostalServer) PoolRange(ctx context.Context, req *api.PoolRangeReques
 			return nil, errors.Wrapf(pErr, "failed to retrieve pool in network (%s) for id (%s)", req.ID.NetworkID, req.ID.ID)
 		}
 		return &api.PoolRangeResponse{
-			Pools:  []*api.Pool{pm.APIPool()},
-			Size_:  int32(1),
-			Offset: int32(0),
+			Pools: []*api.Pool{pm.APIPool()},
+			Size_: int32(1),
 		}, nil
 	}
 
-	poolIds, err := nm.Pools()
+	pools, err := nm.Pools(req.Filters)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to retrieve pools for network id (%s)", req.ID.NetworkID)
 	}
 
 	resp := &api.PoolRangeResponse{
-		Pools:  []*api.Pool{},
-		Size_:  int32(len(poolIds)),
-		Offset: int32(0),
-	}
-
-	for idx := range poolIds {
-		resp.Pools = append(resp.Pools, &api.Pool{
-			ID: &api.Pool_PoolID{NetworkID: req.ID.NetworkID, ID: poolIds[idx]},
-		})
+		Pools: pools,
+		Size_: int32(len(pools)),
 	}
 
 	return resp, nil

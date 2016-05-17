@@ -3,6 +3,7 @@ package postal
 import (
 	"encoding/json"
 	"net"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -16,7 +17,7 @@ import (
 
 // NetworkManager defines the interface for how to interact with a Network of addresses.
 type NetworkManager interface {
-	Pools() ([]string, error)
+	Pools(filters map[string]string) ([]*api.Pool, error)
 	Pool(ID string) (PoolManager, error)
 	NewPool(annotations map[string]string, min, max int, poolType api.Pool_Type) (PoolManager, error)
 	Binding(net.IP) (*api.Binding, error)
@@ -40,16 +41,57 @@ func (nm *etcdNetworkManager) APINetwork() *api.Network {
 	}
 }
 
-func (nm *etcdNetworkManager) Pools() ([]string, error) {
+func (nm *etcdNetworkManager) Pools(filters map[string]string) ([]*api.Pool, error) {
 	resp, err := nm.etcd.KV.Get(context.Background(), networkPoolsKey(nm.ID), clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
-	poolIDs := []string{}
+
+	noFilter := filters == nil || len(filters) == 0
+
+	pools := []*api.Pool{}
 	for idx := range resp.Kvs {
-		poolIDs = append(poolIDs, strings.Split(string(resp.Kvs[idx].Key), "/")[7])
+		pool := &api.Pool{}
+		err = json.Unmarshal(resp.Kvs[idx].Value, pool)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal pool")
+		}
+
+		if noFilter {
+			pools = append(pools, pool)
+		} else {
+			var matched bool
+			for field, filter := range filters {
+				switch field {
+				case "_id":
+					matched, err = regexp.MatchString(filter, pool.ID.ID)
+				case "_network":
+					matched, err = regexp.MatchString(filter, pool.ID.NetworkID)
+				case "_type":
+					matched, err = regexp.MatchString(strings.ToLower(filter), strings.ToLower(pool.Type.String()))
+				default:
+					if val, ok := pool.Annotations[field]; ok {
+						matched, err = regexp.MatchString(filter, val)
+					} else {
+						break
+					}
+				}
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to compile filter '%s'", filter)
+				}
+
+				if !matched {
+					break
+				}
+			}
+
+			if matched {
+				pools = append(pools, pool)
+			}
+		}
 	}
-	return poolIDs, nil
+
+	return pools, nil
 }
 
 func (nm *etcdNetworkManager) Pool(ID string) (PoolManager, error) {
