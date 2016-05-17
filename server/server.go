@@ -239,14 +239,32 @@ func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAdd
 		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.PoolID.NetworkID)
 	}
 
-	pm, err := nm.Pool(req.PoolID.ID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
+	var pm postal.PoolManager
+	var binding *api.Binding
+
+	if len(req.Address) > 0 {
+		binding, err = nm.Binding(net.ParseIP(req.Address))
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to find binding for ip (%s)", req.Address)
+		}
+	} else {
+
+		pm, err = nm.Pool(req.PoolID.ID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
+		}
+
+		binding, err = pm.Binding(req.BindingID)
+		if err != nil {
+			return nil, errors.Wrap(err, "binding lookup failed")
+		}
 	}
 
-	binding, err := pm.Binding(req.BindingID)
-	if err != nil {
-		return nil, errors.Wrap(err, "binding lookup failed")
+	if pm == nil {
+		pm, err = nm.Pool(binding.PoolID.ID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
+		}
 	}
 
 	err = pm.Release(binding, req.Hard)
