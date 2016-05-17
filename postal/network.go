@@ -119,7 +119,7 @@ func (nm *etcdNetworkManager) Pool(ID string) (PoolManager, error) {
 
 func (nm *etcdNetworkManager) NewPool(annotations map[string]string, min, max int, poolType api.Pool_Type) (PoolManager, error) {
 	pool := &api.Pool{
-		Annotations:      annotations,
+		Annotations:      mergeMap(nm.annotations, annotations),
 		MinimumAddresses: int32(min),
 		MaximumAddresses: int32(max),
 		Type:             poolType,

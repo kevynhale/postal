@@ -69,3 +69,10 @@ func canonicalIPString(addr net.IP) string {
 
 	return ret[:len(ret)-1]
 }
+
+func mergeMap(base, merge map[string]string) map[string]string {
+	for k, v := range merge {
+		base[k] = v
+	}
+	return base
+}

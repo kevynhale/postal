@@ -118,6 +118,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 	if err != nil {
 		return nil, errors.Wrap(err, "list bindings failed")
 	}
+	annotations = mergeMap(pm.pool.Annotations, annotations)
 
 	filteredBindings := filterBoundBindings(existingBindings)
 
@@ -156,6 +157,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 }
 
 func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
+	annotations = mergeMap(pm.pool.Annotations, annotations)
 	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
 		ID:          uuid.NewV4().String(),
