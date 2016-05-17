@@ -1,5 +1,5 @@
-hash: c755aa42f332d9444849dea96d8c06e291c997c9167c902d18d607932f079a6c
-updated: 2016-05-09T13:05:10.911970406-06:00
+hash: 5e11deb3dbe4a8596d726fc53ab40846f683a6e68dc241d55402451a063d2f65
+updated: 2016-05-17T15:57:42.32460214-06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c
@@ -42,7 +42,7 @@ imports:
   subpackages:
   - spew
 - name: github.com/dustin/go-humanize
-  version: 8929fe90cee4b2cb9deb468b51fb34eba64d1bf0
+  version: f3565c9525600a911af3bd34f8b535ea81b2a9e0
 - name: github.com/fsnotify/fsnotify
   version: 30411dbcefb7a1da7e84f75530ad3abe4011b4f8
 - name: github.com/ghodss/yaml
@@ -83,6 +83,8 @@ imports:
   version: d2dd0262208475919e1a362f675cfc0e7c10e905
 - name: github.com/olekukonko/tablewriter
   version: cca8bbc0798408af109aaaa239cbd2634846b340
+- name: github.com/pkg/errors
+  version: 42fa80f2ac6ed17a977ce826074bd3009593fa9d
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
@@ -138,19 +140,19 @@ imports:
 - name: golang.org/x/sys
   version: 9c60d1c508f5134d1ca726b4641db998f2523357
 - name: golang.org/x/text
-  version: bd1c9905f55d983c0cd0b15cf0c3e2fe860c8902
+  version: f773ec03ce334298742df7f3108fc0d402646d22
 - name: google.golang.org/api
-  version: f9a4669e07732c84854dce1f5c451c22427228fb
+  version: b34a26664e9b96e9d4aab8a6e8175ea07af5b8b6
 - name: google.golang.org/appengine
   version: e234e71924d4aa52444bc76f2f831f13fa1eca60
 - name: google.golang.org/cloud
-  version: 5f3c6b769982b139bd7e06c4e49bc86b29b97997
+  version: e0379989b50c627becfa169dfeacbbb899453e81
 - name: google.golang.org/grpc
   version: 7f24e5e90e7e79ee1c68359b05908b668a23ffb2
 - name: gopkg.in/airbrake/gobrake.v2
   version: 31c8ff1fb8b79a6947e6565e9a6df535f98a6b94
 - name: gopkg.in/cheggaaa/pb.v1
-  version: 226d21d43a305fac52b3a104ef83e721b15275e0
+  version: 8808370bf63524e115da1371ba42bce6739f3a6b
 - name: gopkg.in/gemnasium/logrus-airbrake-hook.v2
   version: 31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd
 - name: gopkg.in/yaml.v1
