@@ -28,7 +28,6 @@ import (
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
-	"github.com/twinj/uuid"
 )
 
 // NetworkManager defines the interface for how to interact with a Network of addresses.
@@ -142,7 +141,7 @@ func (nm *etcdNetworkManager) NewPool(annotations map[string]string, min, max in
 		Type:             poolType,
 		ID: &api.Pool_PoolID{
 			NetworkID: nm.ID,
-			ID:        uuid.NewV4().String(),
+			ID:        newPoolID(),
 		},
 	}
 

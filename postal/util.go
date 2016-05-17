@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"net"
 	"path"
+
+	"github.com/twinj/uuid"
 )
 
 func networksKey() string {
@@ -91,4 +93,16 @@ func mergeMap(base, merge map[string]string) map[string]string {
 		base[k] = v
 	}
 	return base
+}
+
+func newNetworkID() string {
+	return uuid.NewV4().String()
+}
+
+func newPoolID() string {
+	return uuid.NewV4().String()
+}
+
+func newBindingID() string {
+	return uuid.NewV4().String()
 }

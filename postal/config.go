@@ -25,7 +25,6 @@ import (
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
-	"github.com/twinj/uuid"
 	"golang.org/x/net/context"
 )
 
@@ -141,7 +140,7 @@ func (config *Config) NewNetwork(annotations map[string]string, cidr string) (Ne
 	}
 
 	network := &etcdNetworkMeta{
-		ID:          uuid.NewV4().String(),
+		ID:          newNetworkID(),
 		IpamID:      IPAM.GetID(),
 		Cidr:        cidr,
 		Annotations: annotations,

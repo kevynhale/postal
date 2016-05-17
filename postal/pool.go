@@ -26,7 +26,6 @@ import (
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
-	"github.com/twinj/uuid"
 )
 
 // PoolManager defines the interface for how to interact with a specific pool.
@@ -101,8 +100,9 @@ func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, erro
 		return nil, errors.New("allocate failed: maximum addresses reached")
 	}
 	binding := newBinding(&api.Binding{
-		PoolID: pm.pool.ID,
-		ID:     uuid.NewV4().String(),
+		PoolID:      pm.pool.ID,
+		ID:          newBindingID(),
+		Annotations: pm.pool.Annotations,
 	})
 
 	err := pm.allocateBinding(binding, requestedAddress)
@@ -144,7 +144,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 
 	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
-		ID:          uuid.NewV4().String(),
+		ID:          newBindingID(),
 		Annotations: annotations,
 	})
 
@@ -160,7 +160,7 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 	annotations = mergeMap(pm.pool.Annotations, annotations)
 	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
-		ID:          uuid.NewV4().String(),
+		ID:          newBindingID(),
 		Annotations: annotations,
 	})
 
