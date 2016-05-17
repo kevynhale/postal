@@ -227,21 +227,18 @@ func TestSrvDynamicPool(t *testing.T) {
 		})
 		assert.Error(bindErr)
 
-		binding, err := client.LookupBinding(context.TODO(), &api.LookupBindingRequest{
-			LookupMethod: &api.LookupBindingRequest_ByAddress{
-				ByAddress: &api.LookupBindingRequest_ByAddressMethod{
-					NetworkID: networkResp.Network.ID,
-					Address:   allocatedAddr.String(),
-				},
-			},
+		bindingRngResp, err := client.BindingRange(context.TODO(), &api.BindingRangeRequest{
+			NetworkID: networkResp.Network.ID,
+			Filters:   map[string]string{"_address": allocatedAddr.String()},
 		})
 		assert.NoError(err)
+		assert.Len(bindingRngResp.Bindings, 1)
 
 		// Allocated: 1
 		// Bound:     2
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
-			BindingID: binding.Binding.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 		})
 		assert.NoError(err)
 
@@ -249,7 +246,8 @@ func TestSrvDynamicPool(t *testing.T) {
 		// Bound:     2
 		// Attempting to release non bound address should error
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
-			BindingID: binding.Binding.ID,
+			PoolID:    poolResp.Pool.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 		})
 		assert.Error(err)
 
@@ -267,7 +265,7 @@ func TestSrvDynamicPool(t *testing.T) {
 		// Hard release expires the binding immediately
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
-			BindingID: binding.Binding.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 			Hard:      true,
 		})
 		assert.NoError(err)
@@ -370,15 +368,12 @@ func TestSrvFixedPool(t *testing.T) {
 		})
 		assert.Error(allocErr)
 
-		binding, err := client.LookupBinding(context.TODO(), &api.LookupBindingRequest{
-			LookupMethod: &api.LookupBindingRequest_ById{
-				ById: &api.LookupBindingRequest_ByIDMethod{
-					PoolID: poolResp.Pool.ID,
-					ID:     allocatedBinding,
-				},
-			},
+		bindingRngResp, err := client.BindingRange(context.TODO(), &api.BindingRangeRequest{
+			NetworkID: poolResp.Pool.ID.NetworkID,
+			Filters:   map[string]string{"_id": allocatedBinding},
 		})
 		assert.NoError(err)
+		assert.Len(bindingRngResp.Bindings, 1)
 
 		// Allocated: 0
 		// Bound:     3
@@ -391,7 +386,7 @@ func TestSrvFixedPool(t *testing.T) {
 		// Bound:     2
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
-			BindingID: binding.Binding.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 		})
 		assert.NoError(err)
 
@@ -399,7 +394,7 @@ func TestSrvFixedPool(t *testing.T) {
 		// Bound:     2
 		// Attempting to release non bound address should error
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
-			BindingID: binding.Binding.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 		})
 		assert.Error(err)
 
@@ -417,7 +412,7 @@ func TestSrvFixedPool(t *testing.T) {
 		// Hard release expires the binding immediately
 		_, err = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
 			PoolID:    poolResp.Pool.ID,
-			BindingID: binding.Binding.ID,
+			BindingID: bindingRngResp.Bindings[0].ID,
 			Hard:      true,
 		})
 		assert.NoError(err)

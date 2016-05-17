@@ -76,7 +76,7 @@ service Postal {
   rpc PoolRemove (PoolRemoveRequest) returns (PoolRemoveResponse);
   rpc PoolSetMax (PoolSetMinMaxRequest) returns (PoolSetMinMaxResponse);
 
-  rpc LookupBinding (LookupBindingRequest) returns (LookupBindingResponse);
+  rpc BindingRange (BindingRangeRequest) returns (BindingRangeResponse);
   rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
   rpc BindAddress (BindAddressRequest) returns (BindAddressResponse);
   rpc ReleaseAddress (ReleaseAddressRequest) returns (ReleaseAddressResponse);
@@ -147,25 +147,16 @@ message PoolSetMinMaxResponse {
 
 }
 
-message LookupBindingRequest {
-	message ByIDMethod {
-		Pool.PoolID poolID = 1;
-		string ID = 2;
-	}
+message BindingRangeRequest {
+	string networkID = 1;
+	int32 size = 3;
+  map<string, string> filters = 4;
 
-	message ByAddressMethod {
-		string networkID = 1;
-		string address = 2;
-	}
-
-	oneof LookupMethod {
-		ByIDMethod by_id = 1;
-		ByAddressMethod by_address = 2;
-	}
 }
 
-message LookupBindingResponse {
-	Binding binding = 1;
+message BindingRangeResponse {
+	repeated Binding bindings = 1;
+	int32 size = 2;
 }
 
 message AllocateAddressRequest {

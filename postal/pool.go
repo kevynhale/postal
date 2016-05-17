@@ -114,7 +114,7 @@ func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, erro
 }
 
 func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding, error) {
-	existingBindings, err := pm.listBindings()
+	existingBindings, err := pm.listBindings(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "list bindings failed")
 	}
@@ -203,6 +203,10 @@ func (pm *etcdPoolManager) Release(b *api.Binding, hard bool) error {
 	binding, err := pm.getBinding(b.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get binding")
+	}
+
+	if binding.ReleaseTime > binding.BindTime {
+		return errors.New("cannot release binding, already released")
 	}
 
 	if hard {

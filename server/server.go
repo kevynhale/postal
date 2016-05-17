@@ -15,6 +15,12 @@ type PostalServer struct {
 	etcd *clientv3.Client
 }
 
+func NewServer(etcd *clientv3.Client) *PostalServer {
+	return &PostalServer{
+		etcd: etcd,
+	}
+}
+
 func (srv *PostalServer) Register(s *grpc.Server) {
 	api.RegisterPostalServer(s, srv)
 }
@@ -130,54 +136,25 @@ func (srv *PostalServer) PoolSetMax(ctx context.Context, req *api.PoolSetMinMaxR
 	return nil, errors.New("operation not supported")
 }
 
-func (srv *PostalServer) LookupBinding(ctx context.Context, req *api.LookupBindingRequest) (*api.LookupBindingResponse, error) {
-	if req.GetById() != nil {
-		if req.GetById().PoolID == nil || len(req.GetById().ID) == 0 {
-			return nil, errors.New("Network, Pool and Binding IDs must all be valid")
-		}
-
-		nm, err := srv.config().Network(req.GetById().PoolID.NetworkID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.GetById().PoolID.NetworkID)
-		}
-
-		pm, err := nm.Pool(req.GetById().PoolID.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to retrieve pool")
-		}
-
-		binding, err := pm.Binding(req.GetById().ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to retrieve binding")
-		}
-
-		return &api.LookupBindingResponse{
-			Binding: binding,
-		}, nil
-
+func (srv *PostalServer) BindingRange(ctx context.Context, req *api.BindingRangeRequest) (*api.BindingRangeResponse, error) {
+	if len(req.NetworkID) == 0 {
+		return nil, errors.New("networkID is not set")
 	}
 
-	if req.GetByAddress() != nil {
-		if len(req.GetByAddress().NetworkID) == 0 {
-			return nil, errors.New("NetworkID must be valid")
-		}
-
-		nm, err := srv.config().Network(req.GetByAddress().NetworkID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.GetByAddress().NetworkID)
-		}
-
-		binding, err := nm.Binding(net.ParseIP(req.GetByAddress().Address))
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to retrieve binding")
-		}
-
-		return &api.LookupBindingResponse{
-			Binding: binding,
-		}, nil
+	nm, err := srv.config().Network(req.NetworkID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get network")
 	}
 
-	return nil, errors.New("lookup did not match byAddress or byID methods")
+	bindings, err := nm.Bindings(req.Filters)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get bindings")
+	}
+
+	return &api.BindingRangeResponse{
+		Bindings: bindings,
+		Size_:    int32(len(bindings)),
+	}, nil
 }
 
 func (srv *PostalServer) AllocateAddress(ctx context.Context, req *api.AllocateAddressRequest) (*api.AllocateAddressResponse, error) {

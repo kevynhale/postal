@@ -3,6 +3,7 @@ package postal
 import (
 	"encoding/json"
 	"net"
+	"regexp"
 	"strings"
 	"time"
 
@@ -145,16 +146,54 @@ func (pm *etcdPoolManager) writeBinding(binding *etcdBinding, ttl int64) error {
 	return nil
 }
 
-func (pm *etcdPoolManager) listBindings() ([]*etcdBinding, error) {
+func (pm *etcdPoolManager) listBindings(filters map[string]string) ([]*etcdBinding, error) {
 	resp, err := pm.etcd.KV.Get(context.Background(), bindingListKey(pm.pool.ID.NetworkID, pm.pool.ID.ID), clientv3.WithPrefix())
 	if err != nil {
 		return nil, errors.Wrap(err, "etcd kv range failed")
 	}
+
+	noFilter := filters == nil || len(filters) == 0
+
 	bindings := []*etcdBinding{}
 	for idx := range resp.Kvs {
 		binding := &api.Binding{}
 		json.Unmarshal(resp.Kvs[idx].Value, binding)
-		bindings = append(bindings, &etcdBinding{binding, resp.Kvs[idx].Version})
+
+		if noFilter {
+			bindings = append(bindings, &etcdBinding{binding, resp.Kvs[idx].Version})
+		} else {
+			var matched bool
+			for field, filter := range filters {
+				switch field {
+				case "_id":
+					matched, err = regexp.MatchString(filter, binding.ID)
+				case "_pool":
+					matched, err = regexp.MatchString(filter, binding.PoolID.ID)
+				case "_network":
+					matched, err = regexp.MatchString(filter, binding.PoolID.NetworkID)
+				case "_address":
+					matched, err = regexp.MatchString(filter, binding.Address)
+				default:
+					if val, ok := binding.Annotations[field]; ok {
+						matched, err = regexp.MatchString(filter, val)
+					} else {
+						break
+					}
+				}
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to compile filter '%s'", filter)
+				}
+
+				if !matched {
+					break
+				}
+			}
+
+			if matched {
+				bindings = append(bindings, &etcdBinding{binding, resp.Kvs[idx].Version})
+			}
+		}
+
 	}
 	return bindings, nil
 }
