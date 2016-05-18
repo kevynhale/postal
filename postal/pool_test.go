@@ -39,7 +39,6 @@ func mkPool(etcd *clientv3.Client, cidr string) *etcdPoolManager {
 				ID:        "pool1",
 			},
 			Annotations:      map[string]string{"foo": "bar"},
-			MinimumAddresses: 2,
 			MaximumAddresses: 5,
 			Type:             api.Pool_FIXED,
 		},
@@ -75,4 +74,34 @@ func TestAllocate(t *testing.T) {
 	binding3, err := pool.Allocate(net.ParseIP("10.0.0.3"))
 	assert.Error(err)
 	assert.Nil(binding3)
+}
+
+func TestSetMaxSize(t *testing.T) {
+	assert := assert.New(t)
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	assert.NoError(err)
+
+	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	pool := mkPool(cli, "10.0.0.0/24")
+	for i := uint64(0); i < pool.MaxSize(); i++ {
+		_, err = pool.Allocate(nil)
+		assert.NoError(err)
+	}
+
+	err = pool.SetMaxSize(2)
+	assert.Error(err)
+
+	err = pool.SetMaxSize(6)
+	assert.NoError(err)
+
+	_, err = pool.Allocate(nil)
+	assert.NoError(err)
+
+	_, err = pool.Allocate(nil)
+	assert.Error(err)
 }

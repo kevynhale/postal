@@ -128,7 +128,7 @@ func (srv *PostalServer) PoolAdd(ctx context.Context, req *api.PoolAddRequest) (
 		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.NetworkID)
 	}
 
-	pm, err := nm.NewPool(req.Annotations, 0, int(req.Maximum), req.Type)
+	pm, err := nm.NewPool(req.Annotations, req.Maximum, req.Type)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new pool")
 	}
@@ -142,8 +142,32 @@ func (srv *PostalServer) PoolRemove(ctx context.Context, req *api.PoolRemoveRequ
 	return nil, errors.New("operation not supported")
 }
 
-func (srv *PostalServer) PoolSetMax(ctx context.Context, req *api.PoolSetMinMaxRequest) (*api.PoolSetMinMaxResponse, error) {
-	return nil, errors.New("operation not supported")
+func (srv *PostalServer) PoolSetMax(ctx context.Context, req *api.PoolSetMaxRequest) (*api.PoolSetMaxResponse, error) {
+	plog.Infof("rpc: PoolSetMax(%s)", req)
+	if req.PoolID == nil {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	if len(req.PoolID.NetworkID) == 0 {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	nm, err := srv.config().Network(req.PoolID.NetworkID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.PoolID.NetworkID)
+	}
+
+	pm, err := nm.Pool(req.PoolID.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
+	}
+
+	err = pm.SetMaxSize(req.Maximum)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to set pool max")
+	}
+
+	return &api.PoolSetMaxResponse{}, nil
 }
 
 func (srv *PostalServer) BindingRange(ctx context.Context, req *api.BindingRangeRequest) (*api.BindingRangeResponse, error) {

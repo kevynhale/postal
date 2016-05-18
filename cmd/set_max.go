@@ -17,18 +17,43 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"strconv"
 
+	"github.com/jive/postal/api"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 // set-maxCmd represents the set-max command
 var setmaxCmd = &cobra.Command{
 	Use:   "set-max",
-	Short: "",
+	Short: "set the maximum address limit for a pool",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("set-max called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 3 {
+			return errors.New("<networkID> <poolID> <max> must be the only 3 arguments")
+		}
+
+		networkID := args[0]
+		poolID := args[1]
+		max, err := strconv.ParseUint(args[2], 0, 64)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse max argument")
+		}
+
+		_, err := client.PoolSetMax(context.TODO(), &api.PoolSetMaxRequest{
+			PoolID: &api.Pool_PoolID{
+				NetworkID: networkID,
+				ID:        poolID,
+			},
+			Maximum: max,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	},
 }
 

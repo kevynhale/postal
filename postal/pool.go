@@ -17,6 +17,7 @@ limitations under the License.
 package postal
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 
@@ -67,10 +68,13 @@ type PoolManager interface {
 	// ID returns the pool's ID
 	ID() string
 	// CurrentSize will enumerate the existing bindings for a pool and return the cardinatlity.
-	CurrentSize() int
+	CurrentSize() uint64
 	// MaxSize indicates what the maximum number of addresses a pool may hold.
 	// A MaxSize of 0, disables this check and allows for a unbounded pool
-	MaxSize() int
+	MaxSize() uint64
+	// SetMaxSize updates the pool size limit to the given max.
+	// If the new max is greater than the current size, this sould return an error.
+	SetMaxSize(uint64) error
 	// Type will be one of api.Pool_FIXED or api.Pool_DYNAMIC
 	Type() api.Pool_Type
 	// APIPool returns the *api.Pool that represents for the manager.
@@ -242,15 +246,45 @@ func (pm *etcdPoolManager) Binding(ID string) (*api.Binding, error) {
 	return binding.Binding, nil
 }
 
-func (pm *etcdPoolManager) CurrentSize() int {
+func (pm *etcdPoolManager) CurrentSize() uint64 {
+	var count uint64
 	resp, err := pm.etcd.KV.Get(context.Background(), bindingListKey(pm.pool.ID.NetworkID, pm.pool.ID.ID), clientv3.WithPrefix())
 	if err != nil {
-		return 0
+		return count
 	}
 
-	return len(resp.Kvs)
+	count += uint64(len(resp.Kvs))
+	for resp.More {
+		resp, err = pm.etcd.KV.Get(
+			context.Background(),
+			string(resp.Kvs[len(resp.Kvs)].Key),
+			clientv3.WithPrefix(),
+			clientv3.WithFromKey())
+		if err != nil {
+			return count
+		}
+		count += uint64(len(resp.Kvs))
+	}
+
+	return count
 }
 
-func (pm *etcdPoolManager) MaxSize() int {
-	return int(pm.pool.MaximumAddresses)
+func (pm *etcdPoolManager) MaxSize() uint64 {
+	return pm.pool.MaximumAddresses
+}
+
+func (pm *etcdPoolManager) SetMaxSize(max uint64) error {
+	if pm.CurrentSize() > max {
+		return errors.New("current size exceeds new maximum")
+	}
+	oldData, _ := json.Marshal(pm.pool)
+	pm.pool.MaximumAddresses = max
+	newData, _ := json.Marshal(pm.pool)
+
+	pm.etcd.KV.Txn(context.TODO()).If(
+		clientv3.Compare(
+			clientv3.Value(poolMetaKey(pm.pool.ID.NetworkID, pm.pool.ID.ID)),
+			"=", string(oldData),
+		)).Then(clientv3.OpPut(poolMetaKey(pm.pool.ID.NetworkID, pm.pool.ID.ID), string(newData))).Commit()
+	return nil
 }

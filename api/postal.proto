@@ -42,9 +42,7 @@ message Pool {
 	PoolID ID = 1;
   map<string, string> annotations = 2;
 	// The maximum number of addresses that the pool should allocate
-  int32 maximumAddresses = 3;
-	// The minimum number of addresses that the pool should allocate
-  int32 minimumAddresses = 4;
+  uint64 maximumAddresses = 3;
 	// Base identity for types of address pools that are supported by the IPAM module
 	enum Type {
 		// DYNAMIC pool addresses are allocated reactively based on requests to the pool
@@ -52,7 +50,7 @@ message Pool {
 		// FIXED pool type indicates that the maximum number of addresses is allocated on the pool's initial creation
 		FIXED = 1;
 	}
-	Type type = 5;
+	Type type = 4;
 }
 
 message Binding {
@@ -74,7 +72,7 @@ service Postal {
   rpc PoolRange (PoolRangeRequest) returns (PoolRangeResponse);
   rpc PoolAdd (PoolAddRequest) returns (PoolAddResponse);
   rpc PoolRemove (PoolRemoveRequest) returns (PoolRemoveResponse);
-  rpc PoolSetMax (PoolSetMinMaxRequest) returns (PoolSetMinMaxResponse);
+  rpc PoolSetMax (PoolSetMaxRequest) returns (PoolSetMaxResponse);
 
   rpc BindingRange (BindingRangeRequest) returns (BindingRangeResponse);
   rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
@@ -123,7 +121,7 @@ message PoolRangeResponse {
 message PoolAddRequest {
 	string networkID = 1;
 	map<string, string> annotations = 2;
-	int32 maximum = 3;
+	uint64 maximum = 3;
 	Pool.Type type = 4;
 }
 
@@ -138,12 +136,12 @@ message PoolRemoveRequest {
 message PoolRemoveResponse {
 }
 
-message PoolSetMinMaxRequest {
-	Pool.PoolID ID = 1;
-	int32 maximum = 2;
+message PoolSetMaxRequest {
+	Pool.PoolID poolID = 1;
+	uint64 maximum = 2;
 }
 
-message PoolSetMinMaxResponse {
+message PoolSetMaxResponse {
 
 }
 

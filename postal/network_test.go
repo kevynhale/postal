@@ -30,17 +30,17 @@ func TestPoolsFilter(t *testing.T) {
 
 	pool1, err := network.NewPool(map[string]string{
 		"example.com/poolName": "default",
-	}, 0, 1000, api.Pool_DYNAMIC)
+	}, 1000, api.Pool_DYNAMIC)
 	assert.NoError(err)
 
 	_, err = network.NewPool(map[string]string{
 		"example.com/poolName": "pool1",
-	}, 0, 5, api.Pool_FIXED)
+	}, 5, api.Pool_FIXED)
 	assert.NoError(err)
 
 	_, err = network.NewPool(map[string]string{
 		"example.com/poolName": "pool2",
-	}, 0, 5, api.Pool_FIXED)
+	}, 5, api.Pool_FIXED)
 	assert.NoError(err)
 
 	pools, err := network.Pools(nil)

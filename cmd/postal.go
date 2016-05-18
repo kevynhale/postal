@@ -70,8 +70,7 @@ func initClient() {
 	}
 	conn, err := grpc.Dial(endpoint, ops...)
 	if err != nil {
-		fmt.Println("Could not connect to endpoint: ", endpoint)
-		//os.Exit(2)
+		plog.Fatalf("could not connect to endpoint [%s]: %s", endpoint, err)
 	}
 	client = api.NewPostalClient(conn)
 }

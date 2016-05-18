@@ -34,7 +34,7 @@ import (
 type NetworkManager interface {
 	Pools(filters map[string]string) ([]*api.Pool, error)
 	Pool(ID string) (PoolManager, error)
-	NewPool(annotations map[string]string, min, max int, poolType api.Pool_Type) (PoolManager, error)
+	NewPool(annotations map[string]string, max uint64, poolType api.Pool_Type) (PoolManager, error)
 	Binding(net.IP) (*api.Binding, error)
 	Bindings(filters map[string]string) ([]*api.Binding, error)
 	APINetwork() *api.Network
@@ -133,11 +133,10 @@ func (nm *etcdNetworkManager) Pool(ID string) (PoolManager, error) {
 	}, nil
 }
 
-func (nm *etcdNetworkManager) NewPool(annotations map[string]string, min, max int, poolType api.Pool_Type) (PoolManager, error) {
+func (nm *etcdNetworkManager) NewPool(annotations map[string]string, max uint64, poolType api.Pool_Type) (PoolManager, error) {
 	pool := &api.Pool{
 		Annotations:      mergeMap(nm.annotations, annotations),
-		MinimumAddresses: int32(min),
-		MaximumAddresses: int32(max),
+		MaximumAddresses: max,
 		Type:             poolType,
 		ID: &api.Pool_PoolID{
 			NetworkID: nm.ID,

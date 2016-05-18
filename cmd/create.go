@@ -85,7 +85,8 @@ var createPoolCmd = &cobra.Command{
 		}
 
 		networkID := args[0]
-		maximum, err := strconv.ParseInt(args[1], 0, 32)
+
+		max, err := strconv.ParseUint(args[1], 0, 64)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse max argument")
 		}
@@ -112,7 +113,7 @@ var createPoolCmd = &cobra.Command{
 		resp, err := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
 			NetworkID:   networkID,
 			Annotations: annotations,
-			Maximum:     int32(maximum),
+			Maximum:     max,
 			Type:        poolType,
 		})
 		if err != nil {

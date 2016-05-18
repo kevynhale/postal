@@ -100,7 +100,7 @@ func TestSrvPool(t *testing.T) {
 
 		poolCount := 5
 		pools := map[string]*api.Pool{}
-		poolMax := int32(10)
+		poolMax := uint64(10)
 		for i := 0; i < poolCount; i++ {
 			resp, err := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
 				NetworkID:   networkResp.Network.ID,
