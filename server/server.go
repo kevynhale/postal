@@ -4,11 +4,16 @@ import (
 	"net"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/postal"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+)
+
+var (
+	plog = capnslog.NewPackageLogger("github.com/jive/postal", "server")
 )
 
 type PostalServer struct {
@@ -22,6 +27,7 @@ func NewServer(etcd *clientv3.Client) *PostalServer {
 }
 
 func (srv *PostalServer) Register(s *grpc.Server) {
+	plog.Info("registering postal grpc server")
 	api.RegisterPostalServer(s, srv)
 }
 
@@ -32,6 +38,7 @@ func (srv *PostalServer) config() *postal.Config {
 // NetworkRange will return exactly 1 Network for a valid ID.
 // If ID is empty then it will return a list of Network IDs.
 func (srv *PostalServer) NetworkRange(ctx context.Context, req *api.NetworkRangeRequest) (*api.NetworkRangeResponse, error) {
+	plog.Infof("rpc: NetworkRange(%s)", req.String())
 	resp := &api.NetworkRangeResponse{}
 
 	if len(req.ID) > 0 {
@@ -56,6 +63,7 @@ func (srv *PostalServer) NetworkRange(ctx context.Context, req *api.NetworkRange
 }
 
 func (srv *PostalServer) NetworkAdd(ctx context.Context, req *api.NetworkAddRequest) (*api.NetworkAddResponse, error) {
+	plog.Infof("rpc: NetworkAdd(%s)", req)
 	network, err := srv.config().NewNetwork(req.GetAnnotations(), req.Cidr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new network")
@@ -71,6 +79,7 @@ func (srv *PostalServer) NetworkRemove(ctx context.Context, req *api.NetworkRemo
 }
 
 func (srv *PostalServer) PoolRange(ctx context.Context, req *api.PoolRangeRequest) (*api.PoolRangeResponse, error) {
+	plog.Infof("rpc: PoolRange(%s)", req)
 	if req.ID == nil {
 		return nil, errors.New("NetworkID must be valid")
 	}
@@ -109,6 +118,7 @@ func (srv *PostalServer) PoolRange(ctx context.Context, req *api.PoolRangeReques
 }
 
 func (srv *PostalServer) PoolAdd(ctx context.Context, req *api.PoolAddRequest) (*api.PoolAddResponse, error) {
+	plog.Infof("rpc: PoolAdd(%s)", req)
 	if len(req.NetworkID) == 0 {
 		return nil, errors.New("NetworkID must be valid")
 	}
@@ -137,6 +147,7 @@ func (srv *PostalServer) PoolSetMax(ctx context.Context, req *api.PoolSetMinMaxR
 }
 
 func (srv *PostalServer) BindingRange(ctx context.Context, req *api.BindingRangeRequest) (*api.BindingRangeResponse, error) {
+	plog.Infof("rpc: BindingRange(%s)", req)
 	if len(req.NetworkID) == 0 {
 		return nil, errors.New("networkID is not set")
 	}
@@ -158,6 +169,7 @@ func (srv *PostalServer) BindingRange(ctx context.Context, req *api.BindingRange
 }
 
 func (srv *PostalServer) AllocateAddress(ctx context.Context, req *api.AllocateAddressRequest) (*api.AllocateAddressResponse, error) {
+	plog.Infof("rpc: AllocateAddress(%s)", req)
 	if req.PoolID == nil {
 		return nil, errors.New("NetworkID must be valid")
 	}
@@ -187,6 +199,7 @@ func (srv *PostalServer) AllocateAddress(ctx context.Context, req *api.AllocateA
 }
 
 func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRequest) (*api.BindAddressResponse, error) {
+	plog.Infof("rpc: BindAddress(%s)", req)
 	if req.PoolID == nil {
 		return nil, errors.New("NetworkID must be valid")
 	}
@@ -226,6 +239,7 @@ func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRe
 }
 
 func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAddressRequest) (*api.ReleaseAddressResponse, error) {
+	plog.Infof("rpc: ReleaseAddress(%s)", req)
 	if req.PoolID == nil {
 		return nil, errors.New("NetworkID must be valid")
 	}

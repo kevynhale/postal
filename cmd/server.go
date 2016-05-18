@@ -22,39 +22,48 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/server"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
+
+var etcdEndpoints []string
+var etcdDialTimeout time.Duration
 
 // serverCmd represents the bind command
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start postal server",
 	Long:  ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
+		plog.Info("starting postal server")
 		cli, err := clientv3.New(clientv3.Config{
-			Endpoints:   []string{"127.0.0.1:2379"},
-			DialTimeout: 5 * time.Second,
+			Endpoints:   etcdEndpoints,
+			DialTimeout: etcdDialTimeout,
 		})
+
+		plog.Infof("configuring server with etcd endpoints [%s]", cli.Endpoints())
 		if err != nil {
-			return errors.Wrap(err, "failed to open etcd client")
+			plog.Fatalf("failed to open etcd client conn: %s", err)
 		}
 		defer cli.Close()
 
+		plog.Infof("listening for client connections on [%s]", endpoint)
 		lis, err := net.Listen("tcp", endpoint)
 		if err != nil {
-			return errors.Wrapf(err, "failed to listen on endpoint %s", endpoint)
+			plog.Fatalf("failed to start listener: %s", err)
 		}
 		defer lis.Close()
 
 		grpcServer := grpc.NewServer()
 		srv := server.NewServer(cli)
 		srv.Register(grpcServer)
-		return grpcServer.Serve(lis)
+		grpcServer.Serve(lis)
 	},
 }
 
 func init() {
 	PostalCmd.AddCommand(serverCmd)
+
+	serverCmd.Flags().StringSliceVar(&etcdEndpoints, "etcd", []string{"127.0.0.1:2379"}, "etcd servers to use")
+	serverCmd.Flags().DurationVar(&etcdDialTimeout, "etcd-timeout", 5*time.Second, "etcd dial timeout")
 }

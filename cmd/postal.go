@@ -22,10 +22,12 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
+
+var plog = capnslog.NewPackageLogger("github.com/jive/postal", "cmd")
 
 var cfgFile string
 var endpoint string
@@ -50,7 +52,6 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initClient)
 
 	PostalCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.netctl.yaml)")
@@ -73,20 +74,4 @@ func initClient() {
 		//os.Exit(2)
 	}
 	client = api.NewPostalClient(conn)
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" { // enable ability to specify config file via flag
-		viper.SetConfigFile(cfgFile)
-	}
-
-	viper.SetConfigName(".netctl") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")   // adding home directory as first search path
-	viper.AutomaticEnv()           // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }
