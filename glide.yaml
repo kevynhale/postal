@@ -28,10 +28,9 @@ import:
   subpackages:
   - /assert
 - package: github.com/twinj/uuid
-- package: github.com/cloudfoundry-incubator/candiedyaml
-- package: github.com/ghodss/yaml
-  version: e8e0db9016175449df0e9c4b6e6995a9433a395c
 - package: github.com/olekukonko/tablewriter
 - package: github.com/spf13/cobra
-- package: github.com/mattn/go-runewidth
 - package: github.com/dustin/go-humanize
+- package: github.com/coreos/pkg
+  subpackages:
+  - /capnslog

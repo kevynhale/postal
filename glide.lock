@@ -1,5 +1,5 @@
-hash: 5e11deb3dbe4a8596d726fc53ab40846f683a6e68dc241d55402451a063d2f65
-updated: 2016-05-17T15:57:42.32460214-06:00
+hash: 2db638488e076f0014926656e78e22a29462ef4b0aa982d908bad3d4118284b4
+updated: 2016-05-18T11:59:36.584355869-06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c
@@ -35,6 +35,8 @@ imports:
   version: cea488b4e6855fee89b6c22a811e3c5baca861b6
 - name: github.com/coreos/pkg
   version: 2c77715c4df99b5420ffcae14ead08f52104065d
+  subpackages:
+  - /capnslog
 - name: github.com/cpuguy83/go-md2man
   version: 71acacd42f85e5e82f70a55327789582a5200a90
 - name: github.com/davecgh/go-spew

@@ -11,6 +11,7 @@ RUN go get github.com/Masterminds/glide && \
 WORKDIR /go/src/github.com/jive/postal
 
 COPY glide.yaml glide.yaml
+COPY glide.lock glide.lock
 RUN glide i --cache-gopath --use-gopath
 
 COPY . /go/src/github.com/jive/postal
