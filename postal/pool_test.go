@@ -57,13 +57,18 @@ func TestAllocate(t *testing.T) {
 	defer cli.Close()
 	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
 
-	pool := mkPool(cli, "10.0.0.0/24")
+	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/24")
+	assert.NoError(err)
+
+	pool, err := nm.NewPool(nil, 5, api.Pool_FIXED)
+	assert.NoError(err)
+
 	binding, err := pool.Allocate(nil)
 	assert.NoError(err)
 	assert.NotNil(binding)
 
-	assert.Equal(pool.pool.ID.NetworkID, binding.PoolID.NetworkID)
-	assert.Equal(pool.pool.ID.ID, binding.PoolID.ID)
+	assert.Equal(pool.APIPool().ID.NetworkID, binding.PoolID.NetworkID)
+	assert.Equal(pool.APIPool().ID.ID, binding.PoolID.ID)
 	assert.Equal("10.0.0.1", binding.Address)
 
 	binding2, err := pool.Allocate(net.ParseIP("10.0.0.3"))

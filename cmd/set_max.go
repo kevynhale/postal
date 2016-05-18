@@ -27,7 +27,7 @@ import (
 
 // set-maxCmd represents the set-max command
 var setmaxCmd = &cobra.Command{
-	Use:   "set-max",
+	Use:   "set-max <networkID> <poolID> <max>",
 	Short: "set the maximum address limit for a pool",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,7 @@ var setmaxCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to parse max argument")
 		}
 
-		_, err := client.PoolSetMax(context.TODO(), &api.PoolSetMaxRequest{
+		_, err = client.PoolSetMax(context.TODO(), &api.PoolSetMaxRequest{
 			PoolID: &api.Pool_PoolID{
 				NetworkID: networkID,
 				ID:        poolID,

@@ -238,16 +238,9 @@ ALLOCATE:
 	return allocatedAddresses, nil
 }
 
-// nextBlock provisions the next block of addresses from the IPAM module.
-func (ipam *etcdIPAM) nextBlock() (*ipamEtcdBlock, error) {
-	ipam.nextKeyLock.Lock()
-	ip := net.ParseIP(ipam.nextKey)
-	ipam.nextKeyLock.Unlock()
-	var newNextIP net.IP
+func (ipam *etcdIPAM) newBlock(ip net.IP) *ipamEtcdBlock {
 	var block *ipamEtcdBlock
 	if len(ipam.net.IP) == net.IPv4len {
-		dec := ipv4ToUint(ip.To4())
-		newNextIP = uintToIPv4(dec + uint32(math.Pow(2, 8)))
 		block = &ipamEtcdBlock{
 			block: ipamBlockInit(
 				&net.IPNet{
@@ -259,8 +252,6 @@ func (ipam *etcdIPAM) nextBlock() (*ipamEtcdBlock, error) {
 			version: int64(0),
 		}
 	} else {
-		pre, sub := ipv6ToUint(ip)
-		newNextIP = uintToIPv6(pre, uint64(math.Pow(float64(sub)+2, 16)))
 		block = &ipamEtcdBlock{
 			block: ipamBlockInit(
 				&net.IPNet{
@@ -273,33 +264,66 @@ func (ipam *etcdIPAM) nextBlock() (*ipamEtcdBlock, error) {
 		}
 	}
 
+	return block
+}
+
+func (ipam *etcdIPAM) incSubnet(ip net.IP) net.IP {
+	var next net.IP
+	if len(ipam.net.IP) == net.IPv4len {
+		dec := ipv4ToUint(ip.To4())
+		next = uintToIPv4(dec + uint32(math.Pow(2, 8)))
+	} else {
+		pre, sub := ipv6ToUint(ip)
+		next = uintToIPv6(pre, uint64(math.Pow(float64(sub)+2, 16)))
+	}
+	return next
+}
+
+func (ipam *etcdIPAM) commitNextBlock(block *ipamEtcdBlock, nextIP net.IP) (*etcd.TxnResponse, error) {
 	blockBytes, err := json.Marshal(block.block)
 	if err != nil {
 		return nil, err
 	}
 
-	//fmt.Printf("TXN: if version(%s) = 0 and nextKey = %s then create allocation(%s) and update nextKey = %s\n", ip.String(), ip.String(), ip.String(), newNextIP.String())
 	resp, err := ipam.etcd.KV.Txn(context.Background()).If(
-		etcd.Compare(etcd.Version(path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", ip.String())), "=", 0),
-		etcd.Compare(etcd.Value(path.Join(IpamEtcdKeyPrefix, ipam.ID, "nextKey")), "=", ip.String()),
+		etcd.Compare(etcd.Version(block.key), "=", 0),
+		etcd.Compare(etcd.Value(path.Join(IpamEtcdKeyPrefix, ipam.ID, "nextKey")), "=", net.ParseIP(ipam.nextKey).String()),
 	).Then(
 		etcd.OpPut(
-			path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", ip.String()),
+			block.key,
 			string(blockBytes),
 		),
 		etcd.OpPut(
 			path.Join(IpamEtcdKeyPrefix, ipam.ID, "nextKey"),
-			newNextIP.String(),
+			nextIP.String(),
 		),
 	).Commit()
-	//fmt.Println("Setting next block to: ", nextIP.String())
 
-	if err != nil {
-		return nil, err
-	}
+	return resp, err
+}
 
-	if resp.Succeeded == false {
-		return nil, fmt.Errorf("ipam: failed to allocate new block=%s", newNextIP.String())
+// nextBlock provisions the next block of addresses from the IPAM module.
+func (ipam *etcdIPAM) nextBlock() (*ipamEtcdBlock, error) {
+	ipam.nextKeyLock.Lock()
+	ip := net.ParseIP(ipam.nextKey)
+	ipam.nextKeyLock.Unlock()
+	newNextIP := ip
+	block := ipam.newBlock(ip)
+	succeeded := false
+
+	for !succeeded {
+		if !ipam.net.Contains(newNextIP) {
+			return nil, errors.New("no next allocation block available")
+		}
+
+		newNextIP = ipam.incSubnet(newNextIP)
+
+		resp, err := ipam.commitNextBlock(block, newNextIP)
+		if err != nil {
+			return nil, err
+		}
+
+		succeeded = resp.Succeeded
 	}
 
 	ipam.nextKeyLock.Lock()
@@ -354,12 +378,44 @@ func (ipam *etcdIPAM) fetchIpamBlock(addr string) (*ipamEtcdBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	block := &ipamBlock{}
-	json.Unmarshal(resp.Kvs[0].Value, block)
-	etcdBlock := &ipamEtcdBlock{
-		block:   block,
-		key:     string(resp.Kvs[0].Key),
-		version: resp.Kvs[0].Version,
+	var etcdBlock *ipamEtcdBlock
+
+	if !ipam.net.Contains(net.ParseIP(addr)) {
+		return nil, errors.New("address out of range")
+	}
+
+	if len(resp.Kvs) == 0 {
+		etcdBlock = ipam.newBlock(net.ParseIP(addr))
+
+		blockBytes, err := json.Marshal(etcdBlock.block)
+		if err != nil {
+			return nil, err
+		}
+
+		txnResp, err := ipam.etcd.KV.Txn(context.Background()).If(
+			etcd.Compare(etcd.Version(path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", addr)), "=", 0),
+		).Then(
+			etcd.OpPut(
+				path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", addr),
+				string(blockBytes),
+			),
+		).Commit()
+
+		if err != nil {
+			return nil, err
+		}
+
+		if txnResp.Succeeded == false {
+			return nil, fmt.Errorf("ipam: failed to allocate block=%s", addr)
+		}
+	} else {
+		block := &ipamBlock{}
+		json.Unmarshal(resp.Kvs[0].Value, block)
+		etcdBlock = &ipamEtcdBlock{
+			block:   block,
+			key:     string(resp.Kvs[0].Key),
+			version: resp.Kvs[0].Version,
+		}
 	}
 	return etcdBlock, nil
 }
