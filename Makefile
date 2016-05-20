@@ -18,3 +18,12 @@ test:
 	docker-compose up -d
 	$(DOCKER_RUN) ./scripts/build.sh test-unit combine-coverage
 	docker-compose down
+
+dist/postalctl_%: build
+	$(DOCKER_RUN) ./scripts/crossbinary $@
+
+docker: dist/postalctl_linux-amd64
+	./scripts/docker-build $(GIT_BRANCH)
+
+clean:
+	rm -rf dist

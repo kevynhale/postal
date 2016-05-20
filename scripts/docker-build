@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cat <<DF > dist/Dockerfile
+FROM scratch
+ADD postalctl_linux-amd64 /postalctl
+EXPOSE 7542
+ENTRYPOINT ["/postalctl"]
+DF
+
+docker build -t jive/postal:${1} dist
