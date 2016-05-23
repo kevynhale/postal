@@ -1,7 +1,9 @@
 #!/bin/bash
 
+chmod +x dist/postalctl_linux-amd64
+
 cat <<DF > dist/Dockerfile
-FROM scratch
+FROM alpine
 ADD postalctl_linux-amd64 /postalctl
 EXPOSE 7542
 ENTRYPOINT ["/postalctl"]
