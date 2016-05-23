@@ -37,7 +37,7 @@ var client api.PostalClient
 
 // PostalCmd represents the base command when called without any subcommands
 var PostalCmd = &cobra.Command{
-	Use:   "postal",
+	Use:   "postalctl",
 	Short: "CLI tool to manage postal service",
 	Long:  ``,
 }
@@ -54,7 +54,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initClient)
 
-	PostalCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.netctl.yaml)")
 	PostalCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "localhost:7542", "postal server endpoint")
 	PostalCmd.PersistentFlags().BoolVar(&insecure, "insecure", false, "enable insecure communication")
 
