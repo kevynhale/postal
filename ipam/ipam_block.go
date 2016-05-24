@@ -98,15 +98,22 @@ func (ipam *ipamBlock) Available() uint {
 	return ipam.Size() - ipam.allocated
 }
 
-func ipamBlockInit(ipnet *net.IPNet) *ipamBlock {
+func ipamBlockInit(ipnet *net.IPNet, setFirst, setLast bool) *ipamBlock {
 	subnet := *ipnet
 	mask := make([]byte, int(bitCount(subnet)/8))
-	setBit(mask, 0)
-	setBit(mask, uint(len(mask)*8)-1)
+	allocated := uint(0)
+	if setFirst {
+		setBit(mask, 0)
+		allocated++
+	}
+	if setLast {
+		setBit(mask, uint(len(mask)*8)-1)
+		allocated++
+	}
 	return &ipamBlock{
 		Subnet:    subnet,
 		bitset:    mask,
-		allocated: 2,
+		allocated: allocated,
 	}
 }
 

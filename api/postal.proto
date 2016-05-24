@@ -21,8 +21,7 @@ option java_package = "com.jive.infra.postal.api";
 package api;
 
 message Error{
-	uint32 code = 1;
-	string message = 2;
+	string message = 1;
 }
 
 message Empty {}
@@ -76,6 +75,7 @@ service Postal {
 
   rpc BindingRange (BindingRangeRequest) returns (BindingRangeResponse);
   rpc AllocateAddress (AllocateAddressRequest) returns (AllocateAddressResponse);
+	rpc BulkAllocateAddress (BulkAllocateAddressRequest) returns (BulkAllocateAddressResponse);
   rpc BindAddress (BindAddressRequest) returns (BindAddressResponse);
   rpc ReleaseAddress (ReleaseAddressRequest) returns (ReleaseAddressResponse);
 }
@@ -164,6 +164,16 @@ message AllocateAddressRequest {
 
 message AllocateAddressResponse {
 	Binding binding = 1;
+}
+
+message BulkAllocateAddressRequest {
+	Pool.PoolID poolID = 1;
+	string cidr = 2;
+}
+
+message BulkAllocateAddressResponse {
+	repeated Binding bindings = 1;
+	map<string, Error> errors = 2;
 }
 
 message BindAddressRequest {

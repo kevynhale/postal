@@ -18,6 +18,7 @@ package ipam
 
 import (
 	"fmt"
+	"math"
 	"net"
 )
 
@@ -89,4 +90,20 @@ func CanonicalIPString(addr net.IP) string {
 		}
 	}
 	return ret[:len(ret)-1]
+}
+
+func lastCIDRAddr(ipnet *net.IPNet) net.IP {
+	ip := make(net.IP, len(ipnet.IP))
+	copy(ip, ipnet.IP)
+	ones, bits := ipnet.Mask.Size()
+	size := math.Pow(float64(2), float64(bits-ones))
+	for i := float64(0); i < size-1; i++ {
+		for j := len(ip) - 1; j >= 0; j-- {
+			ip[j]++
+			if ip[j] > 0 {
+				break
+			}
+		}
+	}
+	return ip
 }

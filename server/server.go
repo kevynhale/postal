@@ -226,6 +226,48 @@ func (srv *PostalServer) AllocateAddress(ctx context.Context, req *api.AllocateA
 	}, nil
 }
 
+func (srv *PostalServer) BulkAllocateAddress(ctx context.Context, req *api.BulkAllocateAddressRequest) (*api.BulkAllocateAddressResponse, error) {
+	plog.Infof("rpc: BulkAllocateAddress(%s)", req)
+	if req.PoolID == nil {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	if len(req.PoolID.NetworkID) == 0 {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	ip, ipnet, err := net.ParseCIDR(req.Cidr)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse cidr")
+	}
+
+	nm, err := srv.config().Network(req.PoolID.NetworkID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.PoolID.NetworkID)
+	}
+
+	pm, err := nm.Pool(req.PoolID.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
+	}
+
+	bindings := []*api.Binding{}
+	errs := map[string]*api.Error{}
+	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+		binding, err := pm.Allocate(ip)
+		if err != nil {
+			errs[ip.String()] = &api.Error{Message: err.Error()}
+		} else {
+			bindings = append(bindings, binding)
+		}
+	}
+
+	return &api.BulkAllocateAddressResponse{
+		Bindings: bindings,
+		Errors:   errs,
+	}, nil
+}
+
 func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRequest) (*api.BindAddressResponse, error) {
 	plog.Infof("rpc: BindAddress(%s)", req)
 	if req.PoolID == nil {
@@ -315,4 +357,13 @@ func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAdd
 	}
 
 	return &api.ReleaseAddressResponse{}, nil
+}
+
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
 }

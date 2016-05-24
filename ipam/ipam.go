@@ -241,23 +241,29 @@ ALLOCATE:
 func (ipam *etcdIPAM) newBlock(ip net.IP) *ipamEtcdBlock {
 	var block *ipamEtcdBlock
 	if len(ipam.net.IP) == net.IPv4len {
+		ipnet := &net.IPNet{
+			IP:   ip.To4(),
+			Mask: MinIPv4SubnetMask,
+		}
 		block = &ipamEtcdBlock{
 			block: ipamBlockInit(
-				&net.IPNet{
-					IP:   ip.To4(),
-					Mask: MinIPv4SubnetMask,
-				},
+				ipnet,
+				ipnet.IP.String() == ipam.net.IP.String(),
+				ipnet.Contains(lastCIDRAddr(ipam.net)),
 			),
 			key:     path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", ip.String()),
 			version: int64(0),
 		}
 	} else {
+		ipnet := &net.IPNet{
+			IP:   ip,
+			Mask: MinIPv6SubnetMask,
+		}
 		block = &ipamEtcdBlock{
 			block: ipamBlockInit(
-				&net.IPNet{
-					IP:   ip,
-					Mask: MinIPv6SubnetMask,
-				},
+				ipnet,
+				ipnet.IP.String() == ipam.net.IP.String(),
+				ipnet.Contains(lastCIDRAddr(ipam.net)),
 			),
 			key:     path.Join(IpamEtcdKeyPrefix, ipam.ID, "allocations", ip.String()),
 			version: int64(0),

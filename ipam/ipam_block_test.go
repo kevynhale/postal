@@ -29,7 +29,7 @@ func TestIpRelease(t *testing.T) {
 	count := 25
 	testAddress, ipNet, _ := net.ParseCIDR("192.168.0.0/24")
 	testAddress = testAddress.To4()
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := 1; i < count; i++ {
 		var address net.IP
 		address = manager.Request()
@@ -53,7 +53,7 @@ func TestIpv6Release(t *testing.T) {
 	assert := tassert.New(t)
 	count := 25
 	testAddress, ipNet, _ := net.ParseCIDR("2001:db8::/112")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := 1; i < count; i++ {
 		var address net.IP
 		address = manager.Request()
@@ -74,7 +74,7 @@ func TestIpTicking(t *testing.T) {
 	assert := tassert.New(t)
 	testAddress, ipNet, _ := net.ParseCIDR("10.0.0.0/29")
 	testAddress = testAddress.To4()
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	var address net.IP
 	address = manager.Request()
 
@@ -121,7 +121,7 @@ func TestIpTicking(t *testing.T) {
 func TestIpv6Ticking(t *testing.T) {
 	assert := tassert.New(t)
 	testAddress, ipNet, _ := net.ParseCIDR("2001:db8::/125")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	var address net.IP
 	address = manager.Request()
 	testAddress[15] = 1
@@ -169,7 +169,7 @@ func TestIpClaim(t *testing.T) {
 	testAddress, ipNet, _ := net.ParseCIDR("10.10.2.0/24")
 	testAddress = testAddress.To4()
 	testAddress[3] = 1
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	manager.Claim(testAddress)
 	var address net.IP
 	address = manager.Request()
@@ -180,7 +180,7 @@ func TestIpv6Claim(t *testing.T) {
 	assert := tassert.New(t)
 	testAddress, ipNet, _ := net.ParseCIDR("2001:db8::/112")
 	testAddress[15] = 1
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	manager.Claim(testAddress)
 	var address net.IP
 	address = manager.Request()
@@ -192,7 +192,7 @@ func TestBadIpClaim(t *testing.T) {
 	testAddress, ipNet, _ := net.ParseCIDR("10.10.2.0/24")
 	testAddress = testAddress.To4()
 	testAddress[3] = 1
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	ip := net.ParseIP("10.220.2.1")
 	assert.False(manager.Claim(ip))
 	var address net.IP
@@ -204,7 +204,7 @@ func TestBadIpv6Claim(t *testing.T) {
 	assert := tassert.New(t)
 	testAddress, ipNet, _ := net.ParseCIDR("2001:db8::/112")
 	testAddress[15] = 1
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	ip := net.ParseIP("2001:db8::")
 	assert.False(manager.Claim(ip))
 	var address net.IP
@@ -215,7 +215,7 @@ func TestBadIpv6Claim(t *testing.T) {
 func TestGetIpFullMask(t *testing.T) {
 	count := 300
 	_, ipNet, _ := net.ParseCIDR("192.168.0.0/16")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := 1; i < count; i++ {
 		var address net.IP
 		address = manager.Request()
@@ -229,7 +229,7 @@ func TestGetIpFullMask(t *testing.T) {
 func TestGetIpFullNetwork(t *testing.T) {
 	count := 255
 	_, ipNet, _ := net.ParseCIDR("192.168.0.0/24")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	//IPAMPrint(*ipNet, mask)
 	for i := 1; i < count; i++ {
 		var address net.IP
@@ -249,7 +249,7 @@ func TestGetIpv6FullNetwork(t *testing.T) {
 	assert := tassert.New(t)
 	count := 255
 	testAddress, ipNet, _ := net.ParseCIDR("2001:db8::/120")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := 1; i < count; i++ {
 		var address net.IP
 		address = manager.Request()
@@ -265,7 +265,7 @@ func TestGetIpv6FullNetwork(t *testing.T) {
 func TestGetIpPartialMask(t *testing.T) {
 	count := 300
 	_, ipNet, _ := net.ParseCIDR("192.169.32.0/20")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := 1; i < count; i++ {
 		var address net.IP
 		address = manager.Request()
@@ -278,7 +278,7 @@ func TestGetIpPartialMask(t *testing.T) {
 
 func TestSize(t *testing.T) {
 	_, ipNet, _ := net.ParseCIDR("192.168.0.0/16")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	if manager.Size() != uint(math.Exp2(16)) {
 		t.Error(manager.Size())
 	}
@@ -286,14 +286,14 @@ func TestSize(t *testing.T) {
 
 func TestV6Size(t *testing.T) {
 	_, ipNet, _ := net.ParseCIDR("2001:db8::/112")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	tassert.Equal(t, uint(math.Exp2(16)), manager.Size())
 }
 
 func TestAvailable(t *testing.T) {
 	count := uint(253)
 	_, ipNet, _ := net.ParseCIDR("172.30.32.0/24")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := uint(0); i < count; i++ {
 		manager.Request()
 	}
@@ -305,7 +305,7 @@ func TestAvailable(t *testing.T) {
 func TestBulkRequest(t *testing.T) {
 	assert := tassert.New(t)
 	_, ipNet, _ := net.ParseCIDR("172.30.32.0/24")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	addrs := manager.BulkRequest(uint(100))
 	assert.Equal(100, len(addrs))
 
@@ -314,7 +314,7 @@ func TestBulkRequest(t *testing.T) {
 func TestV6Available(t *testing.T) {
 	count := uint(253)
 	_, ipNet, _ := net.ParseCIDR("2001:db8::/120")
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for i := uint(0); i < count; i++ {
 		manager.Request()
 	}
@@ -322,7 +322,7 @@ func TestV6Available(t *testing.T) {
 }
 
 func benchmarkIPRequest(ipNet *net.IPNet, b *testing.B) {
-	manager := ipamBlockInit(ipNet)
+	manager := ipamBlockInit(ipNet, true, true)
 	for n := 0; n < b.N; n++ {
 		manager.Request()
 	}

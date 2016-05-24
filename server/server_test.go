@@ -437,3 +437,54 @@ func TestSrvFixedPool(t *testing.T) {
 
 	test.execute(t)
 }
+
+func TestSrvBulkAllocate(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     10000,
+			Type:        api.Pool_DYNAMIC,
+		})
+		assert.NoError(poolErr)
+
+		allocResp, allocErr := client.BulkAllocateAddress(context.TODO(), &api.BulkAllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+			Cidr:   "10.0.255.0/24",
+		})
+		assert.NoError(allocErr)
+		assert.Equal(1, len(allocResp.GetErrors()))
+		assert.Equal(255, len(allocResp.GetBindings()))
+
+		_, allocErr = client.BulkAllocateAddress(context.TODO(), &api.BulkAllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+		})
+		assert.Error(allocErr)
+
+		allocResp, allocErr = client.BulkAllocateAddress(context.TODO(), &api.BulkAllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+			Cidr:   "10.0.254.0/23",
+		})
+		assert.NoError(allocErr)
+		assert.Equal(256, len(allocResp.GetErrors()))
+		assert.Equal(256, len(allocResp.GetBindings()))
+
+		allocResp, allocErr = client.BulkAllocateAddress(context.TODO(), &api.BulkAllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+			Cidr:   "10.0.0.0/26",
+		})
+		assert.NoError(allocErr)
+		assert.Equal(1, len(allocResp.GetErrors()))
+		assert.Equal(63, len(allocResp.GetBindings()))
+
+	})
+
+	test.execute(t)
+}
