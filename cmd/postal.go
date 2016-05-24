@@ -37,7 +37,7 @@ var client api.PostalClient
 
 // PostalCmd represents the base command when called without any subcommands
 var PostalCmd = &cobra.Command{
-	Use:   "postalctl",
+	Use:   "postal",
 	Short: "CLI tool to manage postal service",
 	Long:  ``,
 }

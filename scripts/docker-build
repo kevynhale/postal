@@ -1,12 +1,12 @@
 #!/bin/bash
 
-chmod +x dist/postalctl_linux-amd64
+chmod +x dist/postal_linux-amd64
 
 cat <<DF > dist/Dockerfile
 FROM alpine
-ADD postalctl_linux-amd64 /postalctl
+ADD postal_linux-amd64 /postal
 EXPOSE 7542
-ENTRYPOINT ["/postalctl"]
+ENTRYPOINT ["/postal"]
 DF
 
 docker build -t jive/postal:${1} dist

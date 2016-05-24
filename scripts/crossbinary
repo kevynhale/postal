@@ -7,4 +7,4 @@ ARCH=$(echo $1 | cut -d_ -f2 | cut -d- -f2)
 
 # Build binaries
 gox "-os=${PLATFORM}" "-arch=${ARCH}" \
-    -output="dist/postalctl_{{.OS}}-{{.Arch}}" github.com/jive/postal
+    -output="dist/postal_{{.OS}}-{{.Arch}}" github.com/jive/postal
