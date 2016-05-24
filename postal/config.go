@@ -101,6 +101,32 @@ func (config *Config) Networks(filters map[string]string) ([]*api.Network, error
 	return networks, nil
 }
 
+// Pools returns a list of filtered pools
+func (config *Config) Pools(filters map[string]string) ([]*api.Pool, error) {
+	networks, err := config.Networks(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	pools := []*api.Pool{}
+
+	for idx := range networks {
+		nm, err := config.Network(networks[idx].ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get network")
+		}
+
+		p, err := nm.Pools(filters)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get network")
+		}
+
+		pools = append(pools, p...)
+	}
+
+	return pools, nil
+}
+
 // Network returns a specific NetworkManager for a given ID
 func (config *Config) Network(ID string) (NetworkManager, error) {
 	resp, err := config.etcd.Get(context.TODO(), networkMetaKey(ID))

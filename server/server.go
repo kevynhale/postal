@@ -80,12 +80,16 @@ func (srv *PostalServer) NetworkRemove(ctx context.Context, req *api.NetworkRemo
 
 func (srv *PostalServer) PoolRange(ctx context.Context, req *api.PoolRangeRequest) (*api.PoolRangeResponse, error) {
 	plog.Infof("rpc: PoolRange(%s)", req)
-	if req.ID == nil {
-		return nil, errors.New("NetworkID must be valid")
-	}
+	if req.ID == nil || req.ID.NetworkID == "" {
+		pools, err := srv.config().Pools(req.Filters)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to fetch pools")
+		}
 
-	if len(req.ID.NetworkID) == 0 {
-		return nil, errors.New("NetworkID must be valid")
+		return &api.PoolRangeResponse{
+			Pools: pools,
+			Size_: int32(len(pools)),
+		}, nil
 	}
 
 	nm, err := srv.config().Network(req.ID.NetworkID)

@@ -72,17 +72,16 @@ var poolsCmd = &cobra.Command{
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		req := &api.PoolRangeRequest{ID: &api.Pool_PoolID{}}
-		if len(args) == 0 {
-			return fmt.Errorf("first argument must be a network ID")
-		}
 
-		req.ID.NetworkID = args[0]
-
-		if len(args) > 1 {
-			if len(strings.Split(args[1], "=")) == 1 {
+		if len(args) > 0 {
+			if len(strings.Split(args[0], "=")) == 1 && len(strings.Split(args[1], "=")) == 1 {
+				req.ID.NetworkID = args[0]
 				req.ID.ID = args[1]
-			} else {
+			} else if len(strings.Split(args[0], "=")) == 1 {
+				req.ID.NetworkID = args[0]
 				req.Filters = util.ParseAnnotations(args[1:len(args)])
+			} else {
+				req.Filters = util.ParseAnnotations(args[0:len(args)])
 			}
 		}
 
