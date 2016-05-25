@@ -60,7 +60,7 @@ var bindCmd = &cobra.Command{
 			return errors.Wrap(err, "bind rpc failed")
 		}
 
-		util.PrintBinding(resp.Binding, human)
+		util.PrintBinding(resp.Binding, human, rangeHideAnnotations)
 
 		return nil
 	},

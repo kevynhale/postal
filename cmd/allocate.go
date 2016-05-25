@@ -66,7 +66,7 @@ func allocateSingleFn(args []string) error {
 		return errors.Wrap(err, "allocate rpc failed")
 	}
 
-	util.PrintBinding(resp.Binding, human)
+	util.PrintBinding(resp.Binding, human, rangeHideAnnotations)
 
 	return nil
 }

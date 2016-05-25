@@ -70,7 +70,7 @@ to this command. You may subsequently add metadata via annotations.`,
 			return err
 		}
 
-		util.PrintNetwork(resp.Network)
+		util.PrintNetwork(resp.Network, rangeHideAnnotations)
 		return nil
 	},
 }
@@ -120,7 +120,7 @@ var createPoolCmd = &cobra.Command{
 			return err
 		}
 
-		util.PrintPool(resp.Pool)
+		util.PrintPool(resp.Pool, rangeHideAnnotations)
 
 		return nil
 	},

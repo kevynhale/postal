@@ -29,6 +29,7 @@ import (
 )
 
 var human bool
+var rangeHideAnnotations bool
 
 // rangeCmd represents the range command
 var rangeCmd = &cobra.Command{
@@ -61,7 +62,7 @@ var networksCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "failed to complete network range request")
 		}
-		util.PrintNetworks(resp.Networks)
+		util.PrintNetworks(resp.Networks, rangeHideAnnotations)
 		return nil
 	},
 }
@@ -90,7 +91,7 @@ var poolsCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to complete pool range request")
 		}
 
-		util.PrintPools(resp.Pools)
+		util.PrintPools(resp.Pools, rangeHideAnnotations)
 		return nil
 	},
 }
@@ -112,7 +113,7 @@ var bindingsCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to complete binding range request")
 		}
 
-		util.PrintBindings(resp.Bindings, human)
+		util.PrintBindings(resp.Bindings, human, rangeHideAnnotations)
 		return nil
 	},
 }
@@ -123,6 +124,7 @@ func init() {
 	rangeCmd.AddCommand(networksCmd)
 	rangeCmd.AddCommand(poolsCmd)
 	rangeCmd.AddCommand(bindingsCmd)
+	rangeCmd.PersistentFlags().BoolVarP(&rangeHideAnnotations, "hide-annotations", "a", false, "hide annotations")
 
 	bindingsCmd.Flags().BoolVarP(&human, "human", "d", false, "humanize output")
 

@@ -29,51 +29,70 @@ import (
 )
 
 // PrintNetworks prints a slice of Networks in a tabular format
-func PrintNetworks(networks []*api.Network) {
+func PrintNetworks(networks []*api.Network, hideAnnotations bool) {
+	header := []string{"id", "cidr"}
+	if !hideAnnotations {
+		header = append(header, "annotations")
+	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"id", "cidr", "annotations"})
+	table.SetHeader(header)
 	for _, n := range networks {
-		annotations := []string{}
-		for k, v := range n.Annotations {
-			annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
+		row := []string{n.ID, n.Cidr}
+		if !hideAnnotations {
+			annotations := []string{}
+			for k, v := range n.Annotations {
+				annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
+			}
+			row = append(row, strings.Join(annotations, ", "))
 		}
-		table.Append([]string{n.ID, n.Cidr, strings.Join(annotations, ", ")})
+		table.Append(row)
 	}
 	table.Render()
 }
 
 // PrintNetwork prints a single Network in a tabular format
-func PrintNetwork(network *api.Network) {
-	PrintNetworks([]*api.Network{network})
+func PrintNetwork(network *api.Network, hideAnnotations bool) {
+	PrintNetworks([]*api.Network{network}, hideAnnotations)
 }
 
 // PrintPools prints a slice of Pools in a tabular format
-func PrintPools(pools []*api.Pool) {
+func PrintPools(pools []*api.Pool, hideAnnotations bool) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"network", "id", "type", "max", "annotations"})
+	header := []string{"network", "id", "type", "max"}
+	if !hideAnnotations {
+		header = append(header, "annotations")
+	}
+	table.SetHeader(header)
 	for _, p := range pools {
+		row := []string{p.ID.NetworkID, p.ID.ID, p.Type.String(), strconv.Itoa(int(p.MaximumAddresses))}
 		annotations := []string{}
-		for k, v := range p.Annotations {
-			annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
+		if !hideAnnotations {
+			for k, v := range p.Annotations {
+				annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
+			}
+			row = append(row, strings.Join(annotations, ", "))
 		}
-		table.Append([]string{p.ID.NetworkID, p.ID.ID, p.Type.String(),
-			strconv.Itoa(int(p.MaximumAddresses)), strings.Join(annotations, ", ")})
+		table.Append(row)
 	}
 	table.Render()
 }
 
 // PrintPool prints a single Pool in a tabular format
-func PrintPool(pool *api.Pool) {
-	PrintPools([]*api.Pool{pool})
+func PrintPool(pool *api.Pool, hideAnnotations bool) {
+	PrintPools([]*api.Pool{pool}, hideAnnotations)
 }
 
 // PrintBindings
-func PrintBindings(bindings []*api.Binding, human bool) {
+func PrintBindings(bindings []*api.Binding, human, hideAnnotations bool) {
 	table := tablewriter.NewWriter(os.Stdout)
+	header := []string{"network", "pool", "id", "address", "allocated", "bound", "released"}
+	if !hideAnnotations {
+		header = append(header, "annotations")
+	}
 	table.SetRowSeparator("-")
-	table.SetHeader([]string{"network", "pool", "id", "address", "allocated", "bound", "released", "annotations"})
+	table.SetHeader(header)
 	for _, b := range bindings {
-		table.Append([]string{
+		row := []string{
 			formatID(b.PoolID.NetworkID, human),
 			formatID(b.PoolID.ID, human),
 			formatID(b.ID, human),
@@ -81,13 +100,17 @@ func PrintBindings(bindings []*api.Binding, human bool) {
 			formatTime(time.Unix(0, b.AllocateTime), human),
 			formatTime(time.Unix(0, b.BindTime), human),
 			formatTime(time.Unix(0, b.ReleaseTime), human),
-			formatAnnotations(b.Annotations)})
+		}
+		if !hideAnnotations {
+			row = append(row, formatAnnotations(b.Annotations))
+		}
+		table.Append(row)
 	}
 	table.Render()
 }
 
-func PrintBinding(binding *api.Binding, human bool) {
-	PrintBindings([]*api.Binding{binding}, human)
+func PrintBinding(binding *api.Binding, human, hideAnnotations bool) {
+	PrintBindings([]*api.Binding{binding}, human, hideAnnotations)
 }
 
 func formatID(id string, human bool) string {
