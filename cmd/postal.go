@@ -19,21 +19,18 @@ package cmd
 import (
 	"fmt"
 	"os"
-
-	"google.golang.org/grpc"
+	"time"
 
 	"github.com/coreos/pkg/capnslog"
-	"github.com/jive/postal/api"
 	"github.com/spf13/cobra"
 )
 
 var plog = capnslog.NewPackageLogger("github.com/jive/postal", "cmd")
-
-var cfgFile string
-var endpoint string
-var insecure bool
-
-var client api.PostalClient
+var (
+	globalFlags           = GlobalFlags{}
+	defaultDialTimeout    = 2 * time.Second
+	defaultCommandTimeOut = 10 * time.Second
+)
 
 // PostalCmd represents the base command when called without any subcommands
 var PostalCmd = &cobra.Command{
@@ -52,24 +49,17 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initClient)
+	PostalCmd.PersistentFlags().StringVar(&globalFlags.Endpoint, "endpoint", "127.0.0.1:7542", "gRPC endpoints")
 
-	PostalCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "localhost:7542", "postal server endpoint")
-	PostalCmd.PersistentFlags().BoolVar(&insecure, "insecure", false, "enable insecure communication")
+	PostalCmd.PersistentFlags().StringVarP(&globalFlags.OutputFormat, "write-out", "w", "simple", "set the output format (simple, json, table)")
 
-}
+	PostalCmd.PersistentFlags().DurationVar(&globalFlags.DialTimeout, "dial-timeout", defaultDialTimeout, "dial timeout for client connections")
+	PostalCmd.PersistentFlags().DurationVar(&globalFlags.CommandTimeOut, "command-timeout", defaultCommandTimeOut, "timeout for short running command (excluding dial timeout)")
 
-func initClient() {
-	if os.Args[1] == "server" || os.Args[1] == "-h" || os.Args[1] == "--help" {
-		return
-	}
-	ops := []grpc.DialOption{}
-	if insecure {
-		ops = append(ops, grpc.WithInsecure())
-	}
-	conn, err := grpc.Dial(endpoint, ops...)
-	if err != nil {
-		plog.Fatalf("could not connect to endpoint [%s]: %s", endpoint, err)
-	}
-	client = api.NewPostalClient(conn)
+	PostalCmd.PersistentFlags().BoolVar(&globalFlags.Insecure, "insecure-transport", true, "disable transport security for client connections")
+	PostalCmd.PersistentFlags().BoolVar(&globalFlags.InsecureSkipVerify, "insecure-skip-tls-verify", false, "skip server certificate verification")
+	PostalCmd.PersistentFlags().StringVar(&globalFlags.CertFile, "cert", "", "identify secure client using this TLS certificate file")
+	PostalCmd.PersistentFlags().StringVar(&globalFlags.KeyFile, "key", "", "identify secure client using this TLS key file")
+	PostalCmd.PersistentFlags().StringVar(&globalFlags.CAFile, "cacert", "", "verify certificates of TLS-enabled secure servers using this CA bundle")
+
 }

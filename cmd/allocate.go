@@ -18,13 +18,10 @@ package cmd
 
 import (
 	"fmt"
-	"math"
-	"net"
 
 	"golang.org/x/net/context"
 
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/cmd/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -38,14 +35,14 @@ var allocateCmd = &cobra.Command{
 	Long:  `postal allocate <networkID> <poolID> (<optional_address>)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if allocateBulk {
-			return allocateBulkFn(args)
+			return allocateBulkFn(cmd, args)
 		}
-		return allocateSingleFn(args)
+		return allocateSingleFn(cmd, args)
 
 	},
 }
 
-func allocateSingleFn(args []string) error {
+func allocateSingleFn(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("invalid arguments")
 	}
@@ -61,17 +58,17 @@ func allocateSingleFn(args []string) error {
 		req.Address = args[2]
 	}
 
-	resp, err := client.AllocateAddress(context.TODO(), req)
+	resp, err := mustClientFromCmd(cmd).AllocateAddress(context.TODO(), req)
 	if err != nil {
 		return errors.Wrap(err, "allocate rpc failed")
 	}
 
-	util.PrintBinding(resp.Binding, human, rangeHideAnnotations)
+	display.AllocateAddress(resp)
 
 	return nil
 }
 
-func allocateBulkFn(args []string) error {
+func allocateBulkFn(cmd *cobra.Command, args []string) error {
 	if len(args) < 3 {
 		return fmt.Errorf("invalid arguments")
 	}
@@ -84,29 +81,30 @@ func allocateBulkFn(args []string) error {
 		Cidr: args[2],
 	}
 
-	resp, err := client.BulkAllocateAddress(context.TODO(), req)
+	resp, err := mustClientFromCmd(cmd).BulkAllocateAddress(context.TODO(), req)
 	if err != nil {
 		return errors.Wrap(err, "bulk allocate rpc failed")
 	}
 
-	_, ipnet, _ := net.ParseCIDR(args[2])
-	ones, bits := ipnet.Mask.Size()
+	display.BulkAllocateAddress(resp)
+	/*
+		_, ipnet, _ := net.ParseCIDR(args[2])
+		ones, bits := ipnet.Mask.Size()
 
-	if len(resp.Errors) > 0 {
-		fmt.Printf("%d of %v addresses successfully allocated to pool.\n", len(resp.Bindings), math.Pow(float64(2), float64(bits-ones)))
-		fmt.Println("The following addresses failed to allocate:")
-		for ip, berr := range resp.Errors {
-			fmt.Printf("---> %s: %s\n", ip, berr.Message)
-		}
-	} else {
-		fmt.Printf("All %v addresses successfully allocated to pool.\n", math.Pow(float64(2), float64(bits-ones)))
-	}
+		if len(resp.Errors) > 0 {
+			fmt.Printf("%d of %v addresses successfully allocated to pool.\n", len(resp.Bindings), math.Pow(float64(2), float64(bits-ones)))
+			fmt.Println("The following addresses failed to allocate:")
+			for ip, berr := range resp.Errors {
+				fmt.Printf("---> %s: %s\n", ip, berr.Message)
+			}
+		} else {
+			fmt.Printf("All %v addresses successfully allocated to pool.\n", math.Pow(float64(2), float64(bits-ones)))
+		}*/
 	return nil
 }
 
 func init() {
 	PostalCmd.AddCommand(allocateCmd)
 
-	allocateCmd.Flags().BoolVarP(&human, "human", "d", false, "humanize output")
 	allocateCmd.Flags().BoolVarP(&allocateBulk, "bulk", "b", false, "use cidr block instead of an IP")
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package cmd
 
 import (
 	"testing"
@@ -48,7 +48,7 @@ func TestParseAnnotations(t *testing.T) {
 	}
 
 	for idx := range cases {
-		ann := ParseAnnotations(cases[idx].input)
+		ann := parseAnnotations(cases[idx].input)
 		assert.Equal(cases[idx].output, ann)
 	}
 }

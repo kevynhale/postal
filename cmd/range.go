@@ -23,13 +23,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/cmd/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 var human bool
-var rangeHideAnnotations bool
 
 // rangeCmd represents the range command
 var rangeCmd = &cobra.Command{
@@ -58,11 +56,11 @@ var networksCmd = &cobra.Command{
 			}
 		}
 
-		resp, err := client.NetworkRange(context.TODO(), req)
+		resp, err := mustClientFromCmd(cmd).NetworkRange(context.TODO(), req)
 		if err != nil {
 			return errors.Wrap(err, "failed to complete network range request")
 		}
-		util.PrintNetworks(resp.Networks, rangeHideAnnotations)
+		display.NetworkRange(resp)
 		return nil
 	},
 }
@@ -80,18 +78,18 @@ var poolsCmd = &cobra.Command{
 				req.ID.ID = args[1]
 			} else if len(strings.Split(args[0], "=")) == 1 {
 				req.ID.NetworkID = args[0]
-				req.Filters = util.ParseAnnotations(args[1:len(args)])
+				req.Filters = parseAnnotations(args[1:len(args)])
 			} else {
-				req.Filters = util.ParseAnnotations(args[0:len(args)])
+				req.Filters = parseAnnotations(args[0:len(args)])
 			}
 		}
 
-		resp, err := client.PoolRange(context.TODO(), req)
+		resp, err := mustClientFromCmd(cmd).PoolRange(context.TODO(), req)
 		if err != nil {
 			return errors.Wrap(err, "failed to complete pool range request")
 		}
 
-		util.PrintPools(resp.Pools, rangeHideAnnotations)
+		display.PoolRange(resp)
 		return nil
 	},
 }
@@ -106,14 +104,14 @@ var bindingsCmd = &cobra.Command{
 			return fmt.Errorf("first argument must be a network ID")
 		}
 		req.NetworkID = args[0]
-		req.Filters = util.ParseAnnotations(args[1:len(args)])
+		req.Filters = parseAnnotations(args[1:len(args)])
 
-		resp, err := client.BindingRange(context.TODO(), req)
+		resp, err := mustClientFromCmd(cmd).BindingRange(context.TODO(), req)
 		if err != nil {
 			return errors.Wrap(err, "failed to complete binding range request")
 		}
 
-		util.PrintBindings(resp.Bindings, human, rangeHideAnnotations)
+		display.BindingRange(resp)
 		return nil
 	},
 }
@@ -124,7 +122,6 @@ func init() {
 	rangeCmd.AddCommand(networksCmd)
 	rangeCmd.AddCommand(poolsCmd)
 	rangeCmd.AddCommand(bindingsCmd)
-	rangeCmd.PersistentFlags().BoolVarP(&rangeHideAnnotations, "hide-annotations", "a", false, "hide annotations")
 
 	bindingsCmd.Flags().BoolVarP(&human, "human", "d", false, "humanize output")
 

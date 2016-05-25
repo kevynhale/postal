@@ -54,12 +54,12 @@ var releaseCmd = &cobra.Command{
 			return fmt.Errorf("invalid arguments")
 		}
 
-		_, err = client.ReleaseAddress(context.TODO(), req)
+		resp, err := mustClientFromCmd(cmd).ReleaseAddress(context.TODO(), req)
 		if err != nil {
 			return errors.Wrap(err, "bind rpc failed")
 		}
 
-		fmt.Println("Released")
+		display.ReleaseAddress(resp)
 
 		return nil
 	},

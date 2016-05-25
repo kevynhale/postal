@@ -22,7 +22,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/cmd/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +40,7 @@ var bindCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		annotations := util.ParseAnnotations(annotationsVars)
+		annotations := parseAnnotations(annotationsVars)
 
 		req := &api.BindAddressRequest{
 			PoolID: &api.Pool_PoolID{
@@ -55,12 +54,12 @@ var bindCmd = &cobra.Command{
 			req.Address = args[2]
 		}
 
-		resp, err := client.BindAddress(context.TODO(), req)
+		resp, err := mustClientFromCmd(cmd).BindAddress(context.TODO(), req)
 		if err != nil {
 			return errors.Wrap(err, "bind rpc failed")
 		}
 
-		util.PrintBinding(resp.Binding, human, rangeHideAnnotations)
+		display.BindAddress(resp)
 
 		return nil
 	},
@@ -68,8 +67,4 @@ var bindCmd = &cobra.Command{
 
 func init() {
 	PostalCmd.AddCommand(bindCmd)
-
-	bindCmd.Flags().StringSliceP("annotations", "a", []string{}, "key=value pair of data to annotate the network with")
-	bindCmd.Flags().BoolVarP(&human, "human", "d", false, "humanize output")
-
 }

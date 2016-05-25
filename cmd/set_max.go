@@ -42,7 +42,7 @@ var setmaxCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to parse max argument")
 		}
 
-		_, err = client.PoolSetMax(context.TODO(), &api.PoolSetMaxRequest{
+		resp, err := mustClientFromCmd(cmd).PoolSetMax(context.TODO(), &api.PoolSetMaxRequest{
 			PoolID: &api.Pool_PoolID{
 				NetworkID: networkID,
 				ID:        poolID,
@@ -52,6 +52,8 @@ var setmaxCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		display.PoolSetMax(resp)
 
 		return nil
 	},

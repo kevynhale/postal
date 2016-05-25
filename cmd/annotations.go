@@ -14,16 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package cmd
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // ParseAnnotations converts a slice of key=val pairs to a map
-func ParseAnnotations(a []string) map[string]string {
+func parseAnnotations(a []string) map[string]string {
 	annotations := map[string]string{}
 	for idx := range a {
 		split := strings.Split(a[idx], "=")
 		annotations[split[0]] = strings.Join(split[1:len(split)], "=")
+	}
+	return annotations
+}
+
+func flattenAnnotations(a map[string]string) []string {
+	annotations := []string{}
+	for k, v := range a {
+		annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
 	}
 	return annotations
 }

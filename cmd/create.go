@@ -24,7 +24,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/cmd/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -61,7 +60,7 @@ to this command. You may subsequently add metadata via annotations.`,
 			return errors.Wrap(err, "failed to parse cidr")
 		}
 
-		resp, err := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+		resp, err := mustClientFromCmd(cmd).NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: annotations,
 			Cidr:        cidr.String(),
 		})
@@ -70,7 +69,7 @@ to this command. You may subsequently add metadata via annotations.`,
 			return err
 		}
 
-		util.PrintNetwork(resp.Network, rangeHideAnnotations)
+		display.NetworkAdd(resp)
 		return nil
 	},
 }
@@ -95,7 +94,7 @@ var createPoolCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		annotations := util.ParseAnnotations(annotationsVars)
+		annotations := parseAnnotations(annotationsVars)
 
 		poolTypeStr, err := cmd.Flags().GetString("type")
 		if err != nil {
@@ -103,14 +102,16 @@ var createPoolCmd = &cobra.Command{
 		}
 
 		var poolType api.Pool_Type
-		if poolTypeStr == "dynamic" {
+		switch poolTypeStr {
+		case "dynamic":
 			poolType = api.Pool_DYNAMIC
-		}
-		if poolTypeStr == "fixed" {
+		case "fixed":
 			poolType = api.Pool_FIXED
+		default:
+			ExitWithError(ExitBadArgs, errors.New("pool type must be 'dynamic' or 'fixed'"))
 		}
 
-		resp, err := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+		resp, err := mustClientFromCmd(cmd).PoolAdd(context.TODO(), &api.PoolAddRequest{
 			NetworkID:   networkID,
 			Annotations: annotations,
 			Maximum:     max,
@@ -120,7 +121,7 @@ var createPoolCmd = &cobra.Command{
 			return err
 		}
 
-		util.PrintPool(resp.Pool, rangeHideAnnotations)
+		display.PoolAdd(resp)
 
 		return nil
 	},
@@ -134,5 +135,5 @@ func init() {
 	createNetworkCmd.Flags().StringSliceP("annotation", "a", []string{}, "key=value pair of data to annotate the network with")
 
 	createPoolCmd.Flags().StringSliceP("annotation", "a", []string{}, "key=value pair of data to annotate the pool with")
-	createPoolCmd.Flags().StringP("type", "t", "dynamic", "pool type")
+	createPoolCmd.Flags().StringP("type", "t", "dynamic", "pool type (dynamic, fixed)")
 }

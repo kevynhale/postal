@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"crypto/tls"
 	"net"
 	"time"
 
@@ -47,12 +48,21 @@ var serverCmd = &cobra.Command{
 		}
 		defer cli.Close()
 
-		plog.Infof("listening for client connections on [%s]", endpoint)
-		lis, err := net.Listen("tcp", endpoint)
+		var lis net.Listener
+		plog.Infof("listening for client connections on [%s]", globalFlags.Endpoint)
+		lis, err = net.Listen("tcp", globalFlags.Endpoint)
 		if err != nil {
 			plog.Fatalf("failed to start listener: %s", err)
 		}
 		defer lis.Close()
+
+		scfg := secureCfgFromCmd(cmd)
+		if scfg.insecureTransport {
+			plog.Info("listener configured for insecure transport")
+		} else {
+			plog.Info("configuring listener for TLS transport")
+			lis = tls.NewListener(lis, mustBuildTLSConfig(scfg))
+		}
 
 		grpcServer := grpc.NewServer()
 		srv := server.NewServer(cli)
