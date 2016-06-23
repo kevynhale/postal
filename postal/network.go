@@ -38,6 +38,21 @@ type NetworkManager interface {
 	Binding(net.IP) (*api.Binding, error)
 	Bindings(filters map[string]string) ([]*api.Binding, error)
 	APINetwork() *api.Network
+
+	// Reservations
+	// A reservation is a block of addresses that cannot be used in a pool regaurdless of
+	// if it has been claimed or not.
+	// This is specifically to address addresses that you don't want to be bound but
+	// are not managed directly in postal.
+
+	// Range lists reservations for the networks after applying specified filters
+	Reservations(filters map[string]string) ([]*api.Reservation, error)
+	// Add creates a new reservation for the network
+	AddReservation(cidr string, annotations map[string]string) (*api.Reservation, error)
+	// Remove removes an existing reservation from the network
+	RemoveReservation(id string) error
+	// IsReserved returns true if an existing network reservation matches the specified addr
+	IsReserved(ip net.IP) (bool, error)
 }
 
 type etcdNetworkManager struct {

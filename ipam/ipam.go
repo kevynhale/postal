@@ -52,7 +52,7 @@ var MinIPv6SubnetMask = net.CIDRMask(112, 128)
 // IPAM defines the interface for allocating blocks of addresses
 type IPAM interface {
 	// Allocate a number of addresses. These are returned as one or more net.IP structs.
-	Allocate(addresses uint) ([]net.IP, error)
+	Allocate(addresses uint, reserved []*net.IPNet) ([]net.IP, error)
 	// Release a specific address back.
 	Release(net.IP) error
 	// Claim forces a claim on a specific address.
@@ -164,7 +164,16 @@ func (ipam *etcdIPAM) String() string {
 	return fmt.Sprintf("ID: %s, net: %v, nextKey: %s", ipam.ID, ipam.net, ipam.nextKey)
 }
 
-func (ipam *etcdIPAM) Allocate(addresses uint) ([]net.IP, error) {
+func reservedBlockCheck(reserved []*net.IPNet, ip net.IP) bool {
+	for idx := range reserved {
+		if reserved[idx].Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func (ipam *etcdIPAM) Allocate(addresses uint, reserved []*net.IPNet) ([]net.IP, error) {
 	retryCount := 0
 ALLOCATE:
 	// fetch list of provisioned blocks
@@ -183,6 +192,10 @@ ALLOCATE:
 		}
 		// check if there are any addresses available in the ipamBlock
 		if block.block.Available() == 0 {
+			continue
+		}
+
+		if reservedBlockCheck(reserved, block.block.Subnet.IP) {
 			continue
 		}
 
@@ -209,6 +222,10 @@ ALLOCATE:
 			} else {
 				return nil, errors.Wrap(err, "nextBlock failed")
 			}
+		}
+
+		if reservedBlockCheck(reserved, block.block.Subnet.IP) {
+			continue
 		}
 
 		if block.block.Available() < (addresses - uint(len(allocatedAddresses))) {

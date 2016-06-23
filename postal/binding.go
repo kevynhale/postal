@@ -62,15 +62,27 @@ func newBinding(b *api.Binding) *etcdBinding {
 	return binding
 }
 
-func (pm *etcdPoolManager) allocateBinding(binding *etcdBinding, addr net.IP) error {
+func isAddressReserved(ip net.IP, reserved []*net.IPNet) bool {
+	for _, ipnet := range reserved {
+		if ipnet.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func (pm *etcdPoolManager) allocateBinding(binding *etcdBinding, addr net.IP, reserved []*net.IPNet) error {
 	if addr == nil || addr.IsUnspecified() {
-		ip, err := pm.IPAM.Allocate(1)
+		ip, err := pm.IPAM.Allocate(1, reserved)
 		if err != nil {
 			return errors.Wrap(err, "allocating address from ipam failed")
 		}
 		binding.AllocateTime = time.Now().UTC().UnixNano()
 		binding.Address = ip[0].String()
 	} else {
+		if isAddressReserved(addr, reserved) {
+			return errors.New("address is reserved")
+		}
 		err := pm.IPAM.Claim(addr)
 		if err != nil {
 			return errors.Wrap(err, "address claim failed")

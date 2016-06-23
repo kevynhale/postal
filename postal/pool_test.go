@@ -63,7 +63,7 @@ func TestAllocate(t *testing.T) {
 	pool, err := nm.NewPool(nil, 5, api.Pool_FIXED)
 	assert.NoError(err)
 
-	binding, err := pool.Allocate(nil)
+	binding, err := pool.Allocate(nil, nil)
 	assert.NoError(err)
 	assert.NotNil(binding)
 
@@ -71,14 +71,46 @@ func TestAllocate(t *testing.T) {
 	assert.Equal(pool.APIPool().ID.ID, binding.PoolID.ID)
 	assert.Equal("10.0.0.1", binding.Address)
 
-	binding2, err := pool.Allocate(net.ParseIP("10.0.0.3"))
+	binding2, err := pool.Allocate(net.ParseIP("10.0.0.3"), nil)
 	assert.NoError(err)
 	assert.NotNil(binding2)
 	assert.Equal("10.0.0.3", binding2.Address)
 
-	binding3, err := pool.Allocate(net.ParseIP("10.0.0.3"))
+	binding3, err := pool.Allocate(net.ParseIP("10.0.0.3"), nil)
 	assert.Error(err)
 	assert.Nil(binding3)
+}
+
+func TestAllocateReserved(t *testing.T) {
+	assert := assert.New(t)
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	assert.NoError(err)
+
+	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/16")
+	assert.NoError(err)
+
+	pool, err := nm.NewPool(nil, 5, api.Pool_FIXED)
+	assert.NoError(err)
+
+	_, ipnet, err := net.ParseCIDR("10.0.0.0/18")
+	assert.NoError(err)
+
+	binding, err := pool.Allocate(net.ParseIP("10.0.64.0"), []*net.IPNet{ipnet})
+	assert.NoError(err)
+	assert.NotNil(binding)
+
+	assert.Equal(pool.APIPool().ID.NetworkID, binding.PoolID.NetworkID)
+	assert.Equal(pool.APIPool().ID.ID, binding.PoolID.ID)
+	assert.Equal("10.0.64.0", binding.Address)
+
+	_, err = pool.Allocate(net.ParseIP("10.0.0.2"), []*net.IPNet{ipnet})
+	assert.Error(err)
 }
 
 func TestSetMaxSize(t *testing.T) {
@@ -94,7 +126,7 @@ func TestSetMaxSize(t *testing.T) {
 
 	pool := mkPool(cli, "10.0.0.0/24")
 	for i := uint64(0); i < pool.MaxSize(); i++ {
-		_, err = pool.Allocate(nil)
+		_, err = pool.Allocate(nil, nil)
 		assert.NoError(err)
 	}
 
@@ -104,9 +136,9 @@ func TestSetMaxSize(t *testing.T) {
 	err = pool.SetMaxSize(6)
 	assert.NoError(err)
 
-	_, err = pool.Allocate(nil)
+	_, err = pool.Allocate(nil, nil)
 	assert.NoError(err)
 
-	_, err = pool.Allocate(nil)
+	_, err = pool.Allocate(nil, nil)
 	assert.Error(err)
 }

@@ -90,6 +90,58 @@ func TestSrvNetwork(t *testing.T) {
 	test.execute(t)
 }
 
+func TestSrvReservation(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        "10.0.0.0/16",
+		})
+		assert.NoError(networkErr)
+
+		poolResp, err := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     uint64(10),
+			Type:        api.Pool_DYNAMIC,
+		})
+
+		assert.NoError(err)
+
+		reservationReq, err := client.ReservationAdd(context.TODO(), &api.ReservationAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Cidr:        "10.0.0.0/18",
+			Annotations: map[string]string{},
+		})
+		assert.NoError(err)
+		assert.Equal("10.0.0.0/18", reservationReq.Reservation.Cidr)
+
+		_, allocErr := client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "10.0.18.1",
+		})
+		assert.Error(allocErr)
+
+		_, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "10.0.64.1",
+		})
+		assert.NoError(allocErr)
+
+		_, err = client.ReservationRemove(context.TODO(), &api.ReservationRemoveRequest{
+			Cidr: reservationReq.Reservation.Cidr,
+		})
+		assert.NoError(allocErr)
+
+		_, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "10.0.18.1",
+		})
+		assert.NoError(allocErr)
+
+	})
+	test.execute(t)
+}
+
 func TestSrvPool(t *testing.T) {
 	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{

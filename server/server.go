@@ -78,6 +78,78 @@ func (srv *PostalServer) NetworkRemove(ctx context.Context, req *api.NetworkRemo
 	return nil, errors.New("operation not supported")
 }
 
+func (srv *PostalServer) ReservationRange(ctx context.Context, req *api.ReservationRangeRequest) (*api.ReservationRangeResponse, error) {
+	plog.Infof("rpc: ReservationRange(%s)", req.String())
+	resp := &api.ReservationRangeResponse{}
+
+	if len(req.NetworkID) > 0 {
+		nm, err := srv.config().Network(req.NetworkID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.NetworkID)
+		}
+
+		reservations, err := nm.Reservations(req.Filters)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to range reservations for network")
+		}
+
+		resp.Reservations = reservations
+		resp.Size_ = int32(len(reservations))
+		return resp, nil
+	}
+
+	return nil, errors.New("NetworkID must be valid")
+}
+
+func (srv *PostalServer) ReservationAdd(ctx context.Context, req *api.ReservationAddRequest) (*api.ReservationAddResponse, error) {
+	plog.Infof("rpc: ReservationAdd(%s)", req)
+	if len(req.NetworkID) == 0 {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	_, _, err := net.ParseCIDR(req.Cidr)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cidr")
+	}
+
+	nm, err := srv.config().Network(req.NetworkID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.NetworkID)
+	}
+
+	reservation, err := nm.AddReservation(req.Cidr, req.Annotations)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create new reservation")
+	}
+
+	return &api.ReservationAddResponse{
+		Reservation: reservation,
+	}, nil
+}
+
+func (srv *PostalServer) ReservationRemove(ctx context.Context, req *api.ReservationRemoveRequest) (*api.ReservationRemoveResponse, error) {
+	plog.Infof("rpc: ReservationRemove(%s)", req)
+	if len(req.NetworkID) == 0 {
+		return nil, errors.New("NetworkID must be valid")
+	}
+
+	_, _, err := net.ParseCIDR(req.Cidr)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid cidr")
+	}
+
+	nm, err := srv.config().Network(req.NetworkID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.NetworkID)
+	}
+
+	err = nm.RemoveReservation(req.Cidr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to remove reservation for cidr %s", req.Cidr)
+	}
+	return &api.ReservationRemoveResponse{}, nil
+}
+
 func (srv *PostalServer) PoolRange(ctx context.Context, req *api.PoolRangeRequest) (*api.PoolRangeResponse, error) {
 	plog.Infof("rpc: PoolRange(%s)", req)
 	if req.ID == nil || req.ID.NetworkID == "" {
@@ -216,7 +288,12 @@ func (srv *PostalServer) AllocateAddress(ctx context.Context, req *api.AllocateA
 		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
 	}
 
-	binding, err := pm.Allocate(net.ParseIP(req.Address))
+	reservations, err := srv.reservationSlice(nm)
+	if err != nil {
+		return nil, err
+	}
+
+	binding, err := pm.Allocate(net.ParseIP(req.Address), reservations)
 	if err != nil {
 		return nil, errors.Wrap(err, "allocate failed")
 	}
@@ -246,6 +323,11 @@ func (srv *PostalServer) BulkAllocateAddress(ctx context.Context, req *api.BulkA
 		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.PoolID.NetworkID)
 	}
 
+	reservations, err := srv.reservationSlice(nm)
+	if err != nil {
+		return nil, err
+	}
+
 	pm, err := nm.Pool(req.PoolID.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
@@ -254,7 +336,10 @@ func (srv *PostalServer) BulkAllocateAddress(ctx context.Context, req *api.BulkA
 	bindings := []*api.Binding{}
 	errs := map[string]*api.Error{}
 	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-		binding, err := pm.Allocate(ip)
+		if isAddressReserved(ip, reservations) {
+			errs[ip.String()] = &api.Error{Message: "address reserved"}
+		}
+		binding, err := pm.Allocate(ip, nil)
 		if err != nil {
 			errs[ip.String()] = &api.Error{Message: err.Error()}
 		} else {
@@ -283,6 +368,11 @@ func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRe
 		return nil, errors.Wrapf(err, "failed to retrieve network for id (%s)", req.PoolID.NetworkID)
 	}
 
+	reservations, err := srv.reservationSlice(nm)
+	if err != nil {
+		return nil, err
+	}
+
 	pm, err := nm.Pool(req.PoolID.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
@@ -292,12 +382,12 @@ func (srv *PostalServer) BindAddress(ctx context.Context, req *api.BindAddressRe
 	addr := net.ParseIP(req.Address)
 
 	if addr == nil || addr.IsUnspecified() {
-		binding, err = pm.BindAny(req.Annotations)
+		binding, err = pm.BindAny(req.Annotations, reservations)
 		if err != nil {
 			return nil, errors.Wrap(err, "bind failed")
 		}
 	} else {
-		binding, err = pm.Bind(req.Annotations, addr)
+		binding, err = pm.Bind(req.Annotations, addr, reservations)
 		if err != nil {
 			return nil, errors.Wrap(err, "bind failed")
 		}
@@ -366,4 +456,30 @@ func inc(ip net.IP) {
 			break
 		}
 	}
+}
+
+func (srv *PostalServer) reservationSlice(nm postal.NetworkManager) ([]*net.IPNet, error) {
+	reservatons, err := nm.Reservations(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not fetch reservations")
+	}
+
+	nets := []*net.IPNet{}
+	for idx := range reservatons {
+		_, ipnet, _ := net.ParseCIDR(reservatons[idx].Cidr)
+		if ipnet != nil {
+			nets = append(nets, ipnet)
+		}
+	}
+
+	return nets, nil
+}
+
+func isAddressReserved(ip net.IP, reserved []*net.IPNet) bool {
+	for _, ipnet := range reserved {
+		if ipnet.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 	"path"
+	"strings"
 
 	"github.com/twinj/uuid"
 )
@@ -30,6 +31,15 @@ func networksKey() string {
 
 func networkMetaKey(ID string) string {
 	return path.Join(networksKey(), ID)
+}
+
+func networkListReservationsKey(ID string) string {
+	return path.Join(PostalEtcdKeyPrefix, "network", ID, "reservations")
+}
+
+func networkReservationKey(ID string, cidr string) string {
+	parts := strings.Split(cidr, "/")
+	return path.Join(networkListReservationsKey(ID), fmt.Sprintf("%s-%s", parts[0], parts[1]))
 }
 
 func networkPoolsKey(ID string) string {

@@ -43,19 +43,19 @@ import (
 // released back to the parent network block on its own.
 type PoolManager interface {
 	// Allocate places an address into the pool to be bound in a subsequent Bind call.
-	Allocate(requestedAddress net.IP) (*api.Binding, error)
+	Allocate(requestedAddress net.IP, reserved []*net.IPNet) (*api.Binding, error)
 	// Bind attempts to reserve a specific address.
 	// If the pool is of type FIXED and the address has not been previously allocated,
 	// the call will fail.
 	// For DYNAMIC pools, Bind will attempt to allocate the requested address if it
 	// has not been previously allocated unless the pool has hit its max address limit.
-	Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error)
+	Bind(annotations map[string]string, requestedAddress net.IP, reserved []*net.IPNet) (*api.Binding, error)
 	// BindAny is very similar to Bind, except it does not take a specific address.
 	// It will instead bind an allocated address at random.
 	// Like Bind, FIXED type pools must have their addresses allocated prior to binding.
 	// If the pool does not have enough addresses for the request and is of type DYNAMIC,
 	// it will attempt to allocate an additional address for the parent network block.
-	BindAny(annotations map[string]string) (*api.Binding, error)
+	BindAny(annotations map[string]string, reserved []*net.IPNet) (*api.Binding, error)
 	// Release will place the address back into a state where it can be bound again within the pool.
 	// If the pool is a DYNAMIC type, it will place a TTL on the binding, such that when it expires it
 	// is released back into the parent network block.
@@ -99,7 +99,7 @@ func (pm *etcdPoolManager) Type() api.Pool_Type {
 	return pm.pool.Type
 }
 
-func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, error) {
+func (pm *etcdPoolManager) Allocate(requestedAddress net.IP, reserved []*net.IPNet) (*api.Binding, error) {
 	if pm.CurrentSize() >= pm.MaxSize() {
 		return nil, errors.New("allocate failed: maximum addresses reached")
 	}
@@ -109,7 +109,7 @@ func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, erro
 		Annotations: pm.pool.Annotations,
 	})
 
-	err := pm.allocateBinding(binding, requestedAddress)
+	err := pm.allocateBinding(binding, requestedAddress, reserved)
 	if err != nil {
 		return nil, errors.Wrap(err, "binding allocation failed")
 	}
@@ -117,7 +117,7 @@ func (pm *etcdPoolManager) Allocate(requestedAddress net.IP) (*api.Binding, erro
 	return binding.Binding, nil
 }
 
-func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding, error) {
+func (pm *etcdPoolManager) BindAny(annotations map[string]string, reserved []*net.IPNet) (*api.Binding, error) {
 	existingBindings, err := pm.listBindings(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "list bindings failed")
@@ -141,7 +141,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 	if pm.CurrentSize() >= pm.MaxSize() {
 		return nil, errors.New("allocate failed: maximum addresses reached")
 	}
-	ip, err := pm.IPAM.Allocate(1)
+	ip, err := pm.IPAM.Allocate(1, reserved)
 	if err != nil {
 		return nil, errors.Wrap(err, "allocating address from ipam failed")
 	}
@@ -160,7 +160,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 	return binding.Binding, nil
 }
 
-func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
+func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP, reserved []*net.IPNet) (*api.Binding, error) {
 	annotations = mergeMap(pm.pool.Annotations, annotations)
 	binding := newBinding(&api.Binding{
 		PoolID:      pm.pool.ID,
@@ -170,6 +170,10 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 
 	if requestedAddress == nil || requestedAddress.IsUnspecified() {
 		return nil, errors.New("bind failed: requestedAddress is unspecified")
+	}
+
+	if isAddressReserved(requestedAddress, reserved) {
+		return nil, errors.New("address is reserved")
 	}
 
 	// Check existing bindings for requested address

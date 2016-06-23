@@ -33,6 +33,12 @@ message Network {
 
 }
 
+message Reservation {
+	string networkID = 1;
+	string cidr = 2;
+	map<string, string> annotations = 3;
+}
+
 message Pool {
 	message PoolID {
   	string networkID = 1;
@@ -67,6 +73,10 @@ service Postal {
 	rpc NetworkRange (NetworkRangeRequest) returns (NetworkRangeResponse);
   rpc NetworkAdd (NetworkAddRequest) returns (NetworkAddResponse);
   rpc NetworkRemove (NetworkRemoveRequest) returns (NetworkRemoveResponse);
+
+	rpc ReservationRange (ReservationRangeRequest) returns (ReservationRangeResponse);
+	rpc ReservationAdd (ReservationAddRequest) returns (ReservationAddResponse);
+	rpc ReservationRemove (ReservationRemoveRequest) returns (ReservationRemoveResponse);
 
   rpc PoolRange (PoolRangeRequest) returns (PoolRangeResponse);
   rpc PoolAdd (PoolAddRequest) returns (PoolAddResponse);
@@ -105,6 +115,35 @@ message NetworkRemoveRequest {
 }
 
 message NetworkRemoveResponse {
+}
+
+message ReservationRangeRequest {
+  string networkID = 1;
+  int32 size = 2;
+  map<string, string> filters = 3;
+}
+
+message ReservationRangeResponse {
+  repeated Reservation reservations = 1;
+  int32 size = 2;
+}
+
+message ReservationAddRequest {
+	string networkID = 1;
+  string cidr = 2;
+	map<string, string> annotations = 3;
+}
+
+message ReservationAddResponse {
+  Reservation reservation = 1;
+}
+
+message ReservationRemoveRequest {
+	string networkID = 1;
+  string cidr = 2;
+}
+
+message ReservationRemoveResponse {
 }
 
 message PoolRangeRequest {

@@ -56,12 +56,12 @@ func TestIPAMFragmentedClaim(t *testing.T) {
 	i, err := NewIPAM("10.10.0.0/22", cli)
 	assert.NoError(err)
 
-	_, err = i.Allocate(30)
+	_, err = i.Allocate(30, nil)
 	assert.NoError(err)
 
 	assert.NoError(i.Claim(net.ParseIP("10.10.2.10")))
 
-	_, err = i.Allocate(250)
+	_, err = i.Allocate(250, nil)
 	assert.NoError(err)
 
 	assert.NoError(i.Claim(net.ParseIP("10.10.3.10")))
@@ -96,12 +96,12 @@ func TestIPAMFragmentedClaimV6(t *testing.T) {
 	i, err := NewIPAM("2001:db8::/110", cli)
 	assert.NoError(err)
 
-	_, err = i.Allocate(30)
+	_, err = i.Allocate(30, nil)
 	assert.NoError(err)
 
 	assert.NoError(i.Claim(net.ParseIP("2001:db8::1:0001")))
 
-	_, err = i.Allocate(65536)
+	_, err = i.Allocate(65536, nil)
 	assert.NoError(err)
 
 	assert.NoError(i.Claim(net.ParseIP("2001:db8::3:0001")))
@@ -132,7 +132,7 @@ func TestIPAM_IT(t *testing.T) {
 	for idx := 0; idx < txn; idx++ {
 		go func() {
 			for j := 0; j < batches; j++ {
-				addrs, err := i.Allocate(uint(count))
+				addrs, err := i.Allocate(uint(count), nil)
 				if err != nil {
 					t.Error(err)
 				}

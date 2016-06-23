@@ -12,6 +12,7 @@
 		Error
 		Empty
 		Network
+		Reservation
 		Pool
 		Binding
 		NetworkRangeRequest
@@ -20,6 +21,12 @@
 		NetworkAddResponse
 		NetworkRemoveRequest
 		NetworkRemoveResponse
+		ReservationRangeRequest
+		ReservationRangeResponse
+		ReservationAddRequest
+		ReservationAddResponse
+		ReservationRemoveRequest
+		ReservationRemoveResponse
 		PoolRangeRequest
 		PoolRangeResponse
 		PoolAddRequest
@@ -85,7 +92,7 @@ var Pool_Type_value = map[string]int32{
 func (x Pool_Type) String() string {
 	return proto.EnumName(Pool_Type_name, int32(x))
 }
-func (Pool_Type) EnumDescriptor() ([]byte, []int) { return fileDescriptorPostal, []int{3, 0} }
+func (Pool_Type) EnumDescriptor() ([]byte, []int) { return fileDescriptorPostal, []int{4, 0} }
 
 type Error struct {
 	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -122,6 +129,24 @@ func (m *Network) GetAnnotations() map[string]string {
 	return nil
 }
 
+type Reservation struct {
+	NetworkID   string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Cidr        string            `protobuf:"bytes,2,opt,name=cidr,proto3" json:"cidr,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,3,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *Reservation) Reset()                    { *m = Reservation{} }
+func (m *Reservation) String() string            { return proto.CompactTextString(m) }
+func (*Reservation) ProtoMessage()               {}
+func (*Reservation) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{3} }
+
+func (m *Reservation) GetAnnotations() map[string]string {
+	if m != nil {
+		return m.Annotations
+	}
+	return nil
+}
+
 type Pool struct {
 	ID          *Pool_PoolID      `protobuf:"bytes,1,opt,name=ID,json=iD" json:"ID,omitempty"`
 	Annotations map[string]string `protobuf:"bytes,2,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
@@ -133,7 +158,7 @@ type Pool struct {
 func (m *Pool) Reset()                    { *m = Pool{} }
 func (m *Pool) String() string            { return proto.CompactTextString(m) }
 func (*Pool) ProtoMessage()               {}
-func (*Pool) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{3} }
+func (*Pool) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{4} }
 
 func (m *Pool) GetID() *Pool_PoolID {
 	if m != nil {
@@ -157,7 +182,7 @@ type Pool_PoolID struct {
 func (m *Pool_PoolID) Reset()                    { *m = Pool_PoolID{} }
 func (m *Pool_PoolID) String() string            { return proto.CompactTextString(m) }
 func (*Pool_PoolID) ProtoMessage()               {}
-func (*Pool_PoolID) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{3, 0} }
+func (*Pool_PoolID) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{4, 0} }
 
 type Binding struct {
 	PoolID       *Pool_PoolID      `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
@@ -172,7 +197,7 @@ type Binding struct {
 func (m *Binding) Reset()                    { *m = Binding{} }
 func (m *Binding) String() string            { return proto.CompactTextString(m) }
 func (*Binding) ProtoMessage()               {}
-func (*Binding) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{4} }
+func (*Binding) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{5} }
 
 func (m *Binding) GetPoolID() *Pool_PoolID {
 	if m != nil {
@@ -197,7 +222,7 @@ type NetworkRangeRequest struct {
 func (m *NetworkRangeRequest) Reset()                    { *m = NetworkRangeRequest{} }
 func (m *NetworkRangeRequest) String() string            { return proto.CompactTextString(m) }
 func (*NetworkRangeRequest) ProtoMessage()               {}
-func (*NetworkRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{5} }
+func (*NetworkRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{6} }
 
 func (m *NetworkRangeRequest) GetFilters() map[string]string {
 	if m != nil {
@@ -214,7 +239,7 @@ type NetworkRangeResponse struct {
 func (m *NetworkRangeResponse) Reset()                    { *m = NetworkRangeResponse{} }
 func (m *NetworkRangeResponse) String() string            { return proto.CompactTextString(m) }
 func (*NetworkRangeResponse) ProtoMessage()               {}
-func (*NetworkRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{6} }
+func (*NetworkRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{7} }
 
 func (m *NetworkRangeResponse) GetNetworks() []*Network {
 	if m != nil {
@@ -231,7 +256,7 @@ type NetworkAddRequest struct {
 func (m *NetworkAddRequest) Reset()                    { *m = NetworkAddRequest{} }
 func (m *NetworkAddRequest) String() string            { return proto.CompactTextString(m) }
 func (*NetworkAddRequest) ProtoMessage()               {}
-func (*NetworkAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{7} }
+func (*NetworkAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{8} }
 
 func (m *NetworkAddRequest) GetAnnotations() map[string]string {
 	if m != nil {
@@ -247,7 +272,7 @@ type NetworkAddResponse struct {
 func (m *NetworkAddResponse) Reset()                    { *m = NetworkAddResponse{} }
 func (m *NetworkAddResponse) String() string            { return proto.CompactTextString(m) }
 func (*NetworkAddResponse) ProtoMessage()               {}
-func (*NetworkAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{8} }
+func (*NetworkAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{9} }
 
 func (m *NetworkAddResponse) GetNetwork() *Network {
 	if m != nil {
@@ -263,7 +288,7 @@ type NetworkRemoveRequest struct {
 func (m *NetworkRemoveRequest) Reset()                    { *m = NetworkRemoveRequest{} }
 func (m *NetworkRemoveRequest) String() string            { return proto.CompactTextString(m) }
 func (*NetworkRemoveRequest) ProtoMessage()               {}
-func (*NetworkRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{9} }
+func (*NetworkRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{10} }
 
 type NetworkRemoveResponse struct {
 }
@@ -271,7 +296,94 @@ type NetworkRemoveResponse struct {
 func (m *NetworkRemoveResponse) Reset()                    { *m = NetworkRemoveResponse{} }
 func (m *NetworkRemoveResponse) String() string            { return proto.CompactTextString(m) }
 func (*NetworkRemoveResponse) ProtoMessage()               {}
-func (*NetworkRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{10} }
+func (*NetworkRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{11} }
+
+type ReservationRangeRequest struct {
+	NetworkID string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Size_     int32             `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Filters   map[string]string `protobuf:"bytes,3,rep,name=filters" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *ReservationRangeRequest) Reset()                    { *m = ReservationRangeRequest{} }
+func (m *ReservationRangeRequest) String() string            { return proto.CompactTextString(m) }
+func (*ReservationRangeRequest) ProtoMessage()               {}
+func (*ReservationRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{12} }
+
+func (m *ReservationRangeRequest) GetFilters() map[string]string {
+	if m != nil {
+		return m.Filters
+	}
+	return nil
+}
+
+type ReservationRangeResponse struct {
+	Reservations []*Reservation `protobuf:"bytes,1,rep,name=reservations" json:"reservations,omitempty"`
+	Size_        int32          `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+}
+
+func (m *ReservationRangeResponse) Reset()                    { *m = ReservationRangeResponse{} }
+func (m *ReservationRangeResponse) String() string            { return proto.CompactTextString(m) }
+func (*ReservationRangeResponse) ProtoMessage()               {}
+func (*ReservationRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{13} }
+
+func (m *ReservationRangeResponse) GetReservations() []*Reservation {
+	if m != nil {
+		return m.Reservations
+	}
+	return nil
+}
+
+type ReservationAddRequest struct {
+	NetworkID   string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Cidr        string            `protobuf:"bytes,2,opt,name=cidr,proto3" json:"cidr,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,3,rep,name=annotations" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *ReservationAddRequest) Reset()                    { *m = ReservationAddRequest{} }
+func (m *ReservationAddRequest) String() string            { return proto.CompactTextString(m) }
+func (*ReservationAddRequest) ProtoMessage()               {}
+func (*ReservationAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{14} }
+
+func (m *ReservationAddRequest) GetAnnotations() map[string]string {
+	if m != nil {
+		return m.Annotations
+	}
+	return nil
+}
+
+type ReservationAddResponse struct {
+	Reservation *Reservation `protobuf:"bytes,1,opt,name=reservation" json:"reservation,omitempty"`
+}
+
+func (m *ReservationAddResponse) Reset()                    { *m = ReservationAddResponse{} }
+func (m *ReservationAddResponse) String() string            { return proto.CompactTextString(m) }
+func (*ReservationAddResponse) ProtoMessage()               {}
+func (*ReservationAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{15} }
+
+func (m *ReservationAddResponse) GetReservation() *Reservation {
+	if m != nil {
+		return m.Reservation
+	}
+	return nil
+}
+
+type ReservationRemoveRequest struct {
+	NetworkID string `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Cidr      string `protobuf:"bytes,2,opt,name=cidr,proto3" json:"cidr,omitempty"`
+}
+
+func (m *ReservationRemoveRequest) Reset()                    { *m = ReservationRemoveRequest{} }
+func (m *ReservationRemoveRequest) String() string            { return proto.CompactTextString(m) }
+func (*ReservationRemoveRequest) ProtoMessage()               {}
+func (*ReservationRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{16} }
+
+type ReservationRemoveResponse struct {
+}
+
+func (m *ReservationRemoveResponse) Reset()                    { *m = ReservationRemoveResponse{} }
+func (m *ReservationRemoveResponse) String() string            { return proto.CompactTextString(m) }
+func (*ReservationRemoveResponse) ProtoMessage()               {}
+func (*ReservationRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{17} }
 
 type PoolRangeRequest struct {
 	ID      *Pool_PoolID      `protobuf:"bytes,1,opt,name=ID,json=iD" json:"ID,omitempty"`
@@ -282,7 +394,7 @@ type PoolRangeRequest struct {
 func (m *PoolRangeRequest) Reset()                    { *m = PoolRangeRequest{} }
 func (m *PoolRangeRequest) String() string            { return proto.CompactTextString(m) }
 func (*PoolRangeRequest) ProtoMessage()               {}
-func (*PoolRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{11} }
+func (*PoolRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{18} }
 
 func (m *PoolRangeRequest) GetID() *Pool_PoolID {
 	if m != nil {
@@ -306,7 +418,7 @@ type PoolRangeResponse struct {
 func (m *PoolRangeResponse) Reset()                    { *m = PoolRangeResponse{} }
 func (m *PoolRangeResponse) String() string            { return proto.CompactTextString(m) }
 func (*PoolRangeResponse) ProtoMessage()               {}
-func (*PoolRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{12} }
+func (*PoolRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{19} }
 
 func (m *PoolRangeResponse) GetPools() []*Pool {
 	if m != nil {
@@ -325,7 +437,7 @@ type PoolAddRequest struct {
 func (m *PoolAddRequest) Reset()                    { *m = PoolAddRequest{} }
 func (m *PoolAddRequest) String() string            { return proto.CompactTextString(m) }
 func (*PoolAddRequest) ProtoMessage()               {}
-func (*PoolAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{13} }
+func (*PoolAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{20} }
 
 func (m *PoolAddRequest) GetAnnotations() map[string]string {
 	if m != nil {
@@ -341,7 +453,7 @@ type PoolAddResponse struct {
 func (m *PoolAddResponse) Reset()                    { *m = PoolAddResponse{} }
 func (m *PoolAddResponse) String() string            { return proto.CompactTextString(m) }
 func (*PoolAddResponse) ProtoMessage()               {}
-func (*PoolAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{14} }
+func (*PoolAddResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{21} }
 
 func (m *PoolAddResponse) GetPool() *Pool {
 	if m != nil {
@@ -357,7 +469,7 @@ type PoolRemoveRequest struct {
 func (m *PoolRemoveRequest) Reset()                    { *m = PoolRemoveRequest{} }
 func (m *PoolRemoveRequest) String() string            { return proto.CompactTextString(m) }
 func (*PoolRemoveRequest) ProtoMessage()               {}
-func (*PoolRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{15} }
+func (*PoolRemoveRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{22} }
 
 func (m *PoolRemoveRequest) GetID() *Pool_PoolID {
 	if m != nil {
@@ -372,7 +484,7 @@ type PoolRemoveResponse struct {
 func (m *PoolRemoveResponse) Reset()                    { *m = PoolRemoveResponse{} }
 func (m *PoolRemoveResponse) String() string            { return proto.CompactTextString(m) }
 func (*PoolRemoveResponse) ProtoMessage()               {}
-func (*PoolRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{16} }
+func (*PoolRemoveResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{23} }
 
 type PoolSetMaxRequest struct {
 	PoolID  *Pool_PoolID `protobuf:"bytes,1,opt,name=poolID" json:"poolID,omitempty"`
@@ -382,7 +494,7 @@ type PoolSetMaxRequest struct {
 func (m *PoolSetMaxRequest) Reset()                    { *m = PoolSetMaxRequest{} }
 func (m *PoolSetMaxRequest) String() string            { return proto.CompactTextString(m) }
 func (*PoolSetMaxRequest) ProtoMessage()               {}
-func (*PoolSetMaxRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{17} }
+func (*PoolSetMaxRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{24} }
 
 func (m *PoolSetMaxRequest) GetPoolID() *Pool_PoolID {
 	if m != nil {
@@ -397,7 +509,7 @@ type PoolSetMaxResponse struct {
 func (m *PoolSetMaxResponse) Reset()                    { *m = PoolSetMaxResponse{} }
 func (m *PoolSetMaxResponse) String() string            { return proto.CompactTextString(m) }
 func (*PoolSetMaxResponse) ProtoMessage()               {}
-func (*PoolSetMaxResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{18} }
+func (*PoolSetMaxResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{25} }
 
 type BindingRangeRequest struct {
 	NetworkID string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
@@ -408,7 +520,7 @@ type BindingRangeRequest struct {
 func (m *BindingRangeRequest) Reset()                    { *m = BindingRangeRequest{} }
 func (m *BindingRangeRequest) String() string            { return proto.CompactTextString(m) }
 func (*BindingRangeRequest) ProtoMessage()               {}
-func (*BindingRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{19} }
+func (*BindingRangeRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{26} }
 
 func (m *BindingRangeRequest) GetFilters() map[string]string {
 	if m != nil {
@@ -425,7 +537,7 @@ type BindingRangeResponse struct {
 func (m *BindingRangeResponse) Reset()                    { *m = BindingRangeResponse{} }
 func (m *BindingRangeResponse) String() string            { return proto.CompactTextString(m) }
 func (*BindingRangeResponse) ProtoMessage()               {}
-func (*BindingRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{20} }
+func (*BindingRangeResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{27} }
 
 func (m *BindingRangeResponse) GetBindings() []*Binding {
 	if m != nil {
@@ -442,7 +554,7 @@ type AllocateAddressRequest struct {
 func (m *AllocateAddressRequest) Reset()                    { *m = AllocateAddressRequest{} }
 func (m *AllocateAddressRequest) String() string            { return proto.CompactTextString(m) }
 func (*AllocateAddressRequest) ProtoMessage()               {}
-func (*AllocateAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{21} }
+func (*AllocateAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{28} }
 
 func (m *AllocateAddressRequest) GetPoolID() *Pool_PoolID {
 	if m != nil {
@@ -458,7 +570,7 @@ type AllocateAddressResponse struct {
 func (m *AllocateAddressResponse) Reset()                    { *m = AllocateAddressResponse{} }
 func (m *AllocateAddressResponse) String() string            { return proto.CompactTextString(m) }
 func (*AllocateAddressResponse) ProtoMessage()               {}
-func (*AllocateAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{22} }
+func (*AllocateAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{29} }
 
 func (m *AllocateAddressResponse) GetBinding() *Binding {
 	if m != nil {
@@ -476,7 +588,7 @@ func (m *BulkAllocateAddressRequest) Reset()         { *m = BulkAllocateAddressR
 func (m *BulkAllocateAddressRequest) String() string { return proto.CompactTextString(m) }
 func (*BulkAllocateAddressRequest) ProtoMessage()    {}
 func (*BulkAllocateAddressRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorPostal, []int{23}
+	return fileDescriptorPostal, []int{30}
 }
 
 func (m *BulkAllocateAddressRequest) GetPoolID() *Pool_PoolID {
@@ -495,7 +607,7 @@ func (m *BulkAllocateAddressResponse) Reset()         { *m = BulkAllocateAddress
 func (m *BulkAllocateAddressResponse) String() string { return proto.CompactTextString(m) }
 func (*BulkAllocateAddressResponse) ProtoMessage()    {}
 func (*BulkAllocateAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorPostal, []int{24}
+	return fileDescriptorPostal, []int{31}
 }
 
 func (m *BulkAllocateAddressResponse) GetBindings() []*Binding {
@@ -521,7 +633,7 @@ type BindAddressRequest struct {
 func (m *BindAddressRequest) Reset()                    { *m = BindAddressRequest{} }
 func (m *BindAddressRequest) String() string            { return proto.CompactTextString(m) }
 func (*BindAddressRequest) ProtoMessage()               {}
-func (*BindAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{25} }
+func (*BindAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{32} }
 
 func (m *BindAddressRequest) GetPoolID() *Pool_PoolID {
 	if m != nil {
@@ -544,7 +656,7 @@ type BindAddressResponse struct {
 func (m *BindAddressResponse) Reset()                    { *m = BindAddressResponse{} }
 func (m *BindAddressResponse) String() string            { return proto.CompactTextString(m) }
 func (*BindAddressResponse) ProtoMessage()               {}
-func (*BindAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{26} }
+func (*BindAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{33} }
 
 func (m *BindAddressResponse) GetBinding() *Binding {
 	if m != nil {
@@ -563,7 +675,7 @@ type ReleaseAddressRequest struct {
 func (m *ReleaseAddressRequest) Reset()                    { *m = ReleaseAddressRequest{} }
 func (m *ReleaseAddressRequest) String() string            { return proto.CompactTextString(m) }
 func (*ReleaseAddressRequest) ProtoMessage()               {}
-func (*ReleaseAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{27} }
+func (*ReleaseAddressRequest) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{34} }
 
 func (m *ReleaseAddressRequest) GetPoolID() *Pool_PoolID {
 	if m != nil {
@@ -578,12 +690,13 @@ type ReleaseAddressResponse struct {
 func (m *ReleaseAddressResponse) Reset()                    { *m = ReleaseAddressResponse{} }
 func (m *ReleaseAddressResponse) String() string            { return proto.CompactTextString(m) }
 func (*ReleaseAddressResponse) ProtoMessage()               {}
-func (*ReleaseAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{28} }
+func (*ReleaseAddressResponse) Descriptor() ([]byte, []int) { return fileDescriptorPostal, []int{35} }
 
 func init() {
 	proto.RegisterType((*Error)(nil), "api.Error")
 	proto.RegisterType((*Empty)(nil), "api.Empty")
 	proto.RegisterType((*Network)(nil), "api.Network")
+	proto.RegisterType((*Reservation)(nil), "api.Reservation")
 	proto.RegisterType((*Pool)(nil), "api.Pool")
 	proto.RegisterType((*Pool_PoolID)(nil), "api.Pool.PoolID")
 	proto.RegisterType((*Binding)(nil), "api.Binding")
@@ -593,6 +706,12 @@ func init() {
 	proto.RegisterType((*NetworkAddResponse)(nil), "api.NetworkAddResponse")
 	proto.RegisterType((*NetworkRemoveRequest)(nil), "api.NetworkRemoveRequest")
 	proto.RegisterType((*NetworkRemoveResponse)(nil), "api.NetworkRemoveResponse")
+	proto.RegisterType((*ReservationRangeRequest)(nil), "api.ReservationRangeRequest")
+	proto.RegisterType((*ReservationRangeResponse)(nil), "api.ReservationRangeResponse")
+	proto.RegisterType((*ReservationAddRequest)(nil), "api.ReservationAddRequest")
+	proto.RegisterType((*ReservationAddResponse)(nil), "api.ReservationAddResponse")
+	proto.RegisterType((*ReservationRemoveRequest)(nil), "api.ReservationRemoveRequest")
+	proto.RegisterType((*ReservationRemoveResponse)(nil), "api.ReservationRemoveResponse")
 	proto.RegisterType((*PoolRangeRequest)(nil), "api.PoolRangeRequest")
 	proto.RegisterType((*PoolRangeResponse)(nil), "api.PoolRangeResponse")
 	proto.RegisterType((*PoolAddRequest)(nil), "api.PoolAddRequest")
@@ -628,6 +747,9 @@ type PostalClient interface {
 	NetworkRange(ctx context.Context, in *NetworkRangeRequest, opts ...grpc.CallOption) (*NetworkRangeResponse, error)
 	NetworkAdd(ctx context.Context, in *NetworkAddRequest, opts ...grpc.CallOption) (*NetworkAddResponse, error)
 	NetworkRemove(ctx context.Context, in *NetworkRemoveRequest, opts ...grpc.CallOption) (*NetworkRemoveResponse, error)
+	ReservationRange(ctx context.Context, in *ReservationRangeRequest, opts ...grpc.CallOption) (*ReservationRangeResponse, error)
+	ReservationAdd(ctx context.Context, in *ReservationAddRequest, opts ...grpc.CallOption) (*ReservationAddResponse, error)
+	ReservationRemove(ctx context.Context, in *ReservationRemoveRequest, opts ...grpc.CallOption) (*ReservationRemoveResponse, error)
 	PoolRange(ctx context.Context, in *PoolRangeRequest, opts ...grpc.CallOption) (*PoolRangeResponse, error)
 	PoolAdd(ctx context.Context, in *PoolAddRequest, opts ...grpc.CallOption) (*PoolAddResponse, error)
 	PoolRemove(ctx context.Context, in *PoolRemoveRequest, opts ...grpc.CallOption) (*PoolRemoveResponse, error)
@@ -668,6 +790,33 @@ func (c *postalClient) NetworkAdd(ctx context.Context, in *NetworkAddRequest, op
 func (c *postalClient) NetworkRemove(ctx context.Context, in *NetworkRemoveRequest, opts ...grpc.CallOption) (*NetworkRemoveResponse, error) {
 	out := new(NetworkRemoveResponse)
 	err := grpc.Invoke(ctx, "/api.Postal/NetworkRemove", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) ReservationRange(ctx context.Context, in *ReservationRangeRequest, opts ...grpc.CallOption) (*ReservationRangeResponse, error) {
+	out := new(ReservationRangeResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/ReservationRange", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) ReservationAdd(ctx context.Context, in *ReservationAddRequest, opts ...grpc.CallOption) (*ReservationAddResponse, error) {
+	out := new(ReservationAddResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/ReservationAdd", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postalClient) ReservationRemove(ctx context.Context, in *ReservationRemoveRequest, opts ...grpc.CallOption) (*ReservationRemoveResponse, error) {
+	out := new(ReservationRemoveResponse)
+	err := grpc.Invoke(ctx, "/api.Postal/ReservationRemove", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -761,6 +910,9 @@ type PostalServer interface {
 	NetworkRange(context.Context, *NetworkRangeRequest) (*NetworkRangeResponse, error)
 	NetworkAdd(context.Context, *NetworkAddRequest) (*NetworkAddResponse, error)
 	NetworkRemove(context.Context, *NetworkRemoveRequest) (*NetworkRemoveResponse, error)
+	ReservationRange(context.Context, *ReservationRangeRequest) (*ReservationRangeResponse, error)
+	ReservationAdd(context.Context, *ReservationAddRequest) (*ReservationAddResponse, error)
+	ReservationRemove(context.Context, *ReservationRemoveRequest) (*ReservationRemoveResponse, error)
 	PoolRange(context.Context, *PoolRangeRequest) (*PoolRangeResponse, error)
 	PoolAdd(context.Context, *PoolAddRequest) (*PoolAddResponse, error)
 	PoolRemove(context.Context, *PoolRemoveRequest) (*PoolRemoveResponse, error)
@@ -826,6 +978,60 @@ func _Postal_NetworkRemove_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostalServer).NetworkRemove(ctx, req.(*NetworkRemoveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_ReservationRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReservationRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).ReservationRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/ReservationRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).ReservationRange(ctx, req.(*ReservationRangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_ReservationAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReservationAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).ReservationAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/ReservationAdd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).ReservationAdd(ctx, req.(*ReservationAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Postal_ReservationRemove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReservationRemoveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostalServer).ReservationRemove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Postal/ReservationRemove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostalServer).ReservationRemove(ctx, req.(*ReservationRemoveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1009,6 +1215,18 @@ var _Postal_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Postal_NetworkRemove_Handler,
 		},
 		{
+			MethodName: "ReservationRange",
+			Handler:    _Postal_ReservationRange_Handler,
+		},
+		{
+			MethodName: "ReservationAdd",
+			Handler:    _Postal_ReservationAdd_Handler,
+		},
+		{
+			MethodName: "ReservationRemove",
+			Handler:    _Postal_ReservationRemove_Handler,
+		},
+		{
 			MethodName: "PoolRange",
 			Handler:    _Postal_PoolRange_Handler,
 		},
@@ -1133,6 +1351,53 @@ func (m *Network) MarshalTo(data []byte) (int, error) {
 		i++
 		i = encodeVarintPostal(data, i, uint64(len(m.Cidr)))
 		i += copy(data[i:], m.Cidr)
+	}
+	return i, nil
+}
+
+func (m *Reservation) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *Reservation) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if len(m.Cidr) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Cidr)))
+		i += copy(data[i:], m.Cidr)
+	}
+	if len(m.Annotations) > 0 {
+		for k, _ := range m.Annotations {
+			data[i] = 0x1a
+			i++
+			v := m.Annotations[k]
+			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			i = encodeVarintPostal(data, i, uint64(mapSize))
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(k)))
+			i += copy(data[i:], k)
+			data[i] = 0x12
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(v)))
+			i += copy(data[i:], v)
+		}
 	}
 	return i, nil
 }
@@ -1486,6 +1751,210 @@ func (m *NetworkRemoveResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
+func (m *ReservationRangeRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationRangeRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if m.Size_ != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Size_))
+	}
+	if len(m.Filters) > 0 {
+		for k, _ := range m.Filters {
+			data[i] = 0x1a
+			i++
+			v := m.Filters[k]
+			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			i = encodeVarintPostal(data, i, uint64(mapSize))
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(k)))
+			i += copy(data[i:], k)
+			data[i] = 0x12
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(v)))
+			i += copy(data[i:], v)
+		}
+	}
+	return i, nil
+}
+
+func (m *ReservationRangeResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationRangeResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Reservations) > 0 {
+		for _, msg := range m.Reservations {
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(data[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.Size_ != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Size_))
+	}
+	return i, nil
+}
+
+func (m *ReservationAddRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationAddRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if len(m.Cidr) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Cidr)))
+		i += copy(data[i:], m.Cidr)
+	}
+	if len(m.Annotations) > 0 {
+		for k, _ := range m.Annotations {
+			data[i] = 0x1a
+			i++
+			v := m.Annotations[k]
+			mapSize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			i = encodeVarintPostal(data, i, uint64(mapSize))
+			data[i] = 0xa
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(k)))
+			i += copy(data[i:], k)
+			data[i] = 0x12
+			i++
+			i = encodeVarintPostal(data, i, uint64(len(v)))
+			i += copy(data[i:], v)
+		}
+	}
+	return i, nil
+}
+
+func (m *ReservationAddResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationAddResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Reservation != nil {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(m.Reservation.Size()))
+		n4, err := m.Reservation.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	return i, nil
+}
+
+func (m *ReservationRemoveRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationRemoveRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.NetworkID) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.NetworkID)))
+		i += copy(data[i:], m.NetworkID)
+	}
+	if len(m.Cidr) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintPostal(data, i, uint64(len(m.Cidr)))
+		i += copy(data[i:], m.Cidr)
+	}
+	return i, nil
+}
+
+func (m *ReservationRemoveResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *ReservationRemoveResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
 func (m *PoolRangeRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
@@ -1505,11 +1974,11 @@ func (m *PoolRangeRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.ID.Size()))
-		n4, err := m.ID.MarshalTo(data[i:])
+		n5, err := m.ID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n5
 	}
 	if m.Size_ != 0 {
 		data[i] = 0x10
@@ -1641,11 +2110,11 @@ func (m *PoolAddResponse) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.Pool.Size()))
-		n5, err := m.Pool.MarshalTo(data[i:])
+		n6, err := m.Pool.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n5
+		i += n6
 	}
 	return i, nil
 }
@@ -1669,11 +2138,11 @@ func (m *PoolRemoveRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.ID.Size()))
-		n6, err := m.ID.MarshalTo(data[i:])
+		n7, err := m.ID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n6
+		i += n7
 	}
 	return i, nil
 }
@@ -1715,11 +2184,11 @@ func (m *PoolSetMaxRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
-		n7, err := m.PoolID.MarshalTo(data[i:])
+		n8, err := m.PoolID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n7
+		i += n8
 	}
 	if m.Maximum != 0 {
 		data[i] = 0x10
@@ -1847,11 +2316,11 @@ func (m *AllocateAddressRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
-		n8, err := m.PoolID.MarshalTo(data[i:])
+		n9, err := m.PoolID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n8
+		i += n9
 	}
 	if len(m.Address) > 0 {
 		data[i] = 0x12
@@ -1881,11 +2350,11 @@ func (m *AllocateAddressResponse) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.Binding.Size()))
-		n9, err := m.Binding.MarshalTo(data[i:])
+		n10, err := m.Binding.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n9
+		i += n10
 	}
 	return i, nil
 }
@@ -1909,11 +2378,11 @@ func (m *BulkAllocateAddressRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
-		n10, err := m.PoolID.MarshalTo(data[i:])
+		n11, err := m.PoolID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n10
+		i += n11
 	}
 	if len(m.Cidr) > 0 {
 		data[i] = 0x12
@@ -1969,11 +2438,11 @@ func (m *BulkAllocateAddressResponse) MarshalTo(data []byte) (int, error) {
 			data[i] = 0x12
 			i++
 			i = encodeVarintPostal(data, i, uint64(v.Size()))
-			n11, err := v.MarshalTo(data[i:])
+			n12, err := v.MarshalTo(data[i:])
 			if err != nil {
 				return 0, err
 			}
-			i += n11
+			i += n12
 		}
 	}
 	return i, nil
@@ -1998,11 +2467,11 @@ func (m *BindAddressRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
-		n12, err := m.PoolID.MarshalTo(data[i:])
+		n13, err := m.PoolID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n12
+		i += n13
 	}
 	if len(m.Address) > 0 {
 		data[i] = 0x12
@@ -2049,11 +2518,11 @@ func (m *BindAddressResponse) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.Binding.Size()))
-		n13, err := m.Binding.MarshalTo(data[i:])
+		n14, err := m.Binding.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n13
+		i += n14
 	}
 	return i, nil
 }
@@ -2077,11 +2546,11 @@ func (m *ReleaseAddressRequest) MarshalTo(data []byte) (int, error) {
 		data[i] = 0xa
 		i++
 		i = encodeVarintPostal(data, i, uint64(m.PoolID.Size()))
-		n14, err := m.PoolID.MarshalTo(data[i:])
+		n15, err := m.PoolID.MarshalTo(data[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n14
+		i += n15
 	}
 	if len(m.BindingID) > 0 {
 		data[i] = 0x12
@@ -2187,6 +2656,28 @@ func (m *Network) Size() (n int) {
 	l = len(m.Cidr)
 	if l > 0 {
 		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *Reservation) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Cidr)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if len(m.Annotations) > 0 {
+		for k, v := range m.Annotations {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
+		}
 	}
 	return n
 }
@@ -2339,6 +2830,94 @@ func (m *NetworkRemoveRequest) Size() (n int) {
 }
 
 func (m *NetworkRemoveResponse) Size() (n int) {
+	var l int
+	_ = l
+	return n
+}
+
+func (m *ReservationRangeRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovPostal(uint64(m.Size_))
+	}
+	if len(m.Filters) > 0 {
+		for k, v := range m.Filters {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
+		}
+	}
+	return n
+}
+
+func (m *ReservationRangeResponse) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Reservations) > 0 {
+		for _, e := range m.Reservations {
+			l = e.Size()
+			n += 1 + l + sovPostal(uint64(l))
+		}
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovPostal(uint64(m.Size_))
+	}
+	return n
+}
+
+func (m *ReservationAddRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Cidr)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	if len(m.Annotations) > 0 {
+		for k, v := range m.Annotations {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovPostal(uint64(len(k))) + 1 + len(v) + sovPostal(uint64(len(v)))
+			n += mapEntrySize + 1 + sovPostal(uint64(mapEntrySize))
+		}
+	}
+	return n
+}
+
+func (m *ReservationAddResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Reservation != nil {
+		l = m.Reservation.Size()
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *ReservationRemoveRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.NetworkID)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	l = len(m.Cidr)
+	if l > 0 {
+		n += 1 + l + sovPostal(uint64(l))
+	}
+	return n
+}
+
+func (m *ReservationRemoveResponse) Size() (n int) {
 	var l int
 	_ = l
 	return n
@@ -2945,6 +3524,225 @@ func (m *Network) Unmarshal(data []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Cidr = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Reservation) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Reservation: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Reservation: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cidr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Cidr = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Annotations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var keykey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				keykey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapkey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapkey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapkey := int(stringLenmapkey)
+			if intStringLenmapkey < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapkey := iNdEx + intStringLenmapkey
+			if postStringIndexmapkey > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapkey := string(data[iNdEx:postStringIndexmapkey])
+			iNdEx = postStringIndexmapkey
+			var valuekey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				valuekey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapvalue uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapvalue := int(stringLenmapvalue)
+			if intStringLenmapvalue < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+			if postStringIndexmapvalue > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapvalue := string(data[iNdEx:postStringIndexmapvalue])
+			iNdEx = postStringIndexmapvalue
+			if m.Annotations == nil {
+				m.Annotations = make(map[string]string)
+			}
+			m.Annotations[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4304,6 +5102,775 @@ func (m *NetworkRemoveResponse) Unmarshal(data []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: NetworkRemoveResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationRangeRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationRangeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationRangeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Size_ |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Filters", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var keykey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				keykey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapkey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapkey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapkey := int(stringLenmapkey)
+			if intStringLenmapkey < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapkey := iNdEx + intStringLenmapkey
+			if postStringIndexmapkey > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapkey := string(data[iNdEx:postStringIndexmapkey])
+			iNdEx = postStringIndexmapkey
+			var valuekey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				valuekey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapvalue uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapvalue := int(stringLenmapvalue)
+			if intStringLenmapvalue < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+			if postStringIndexmapvalue > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapvalue := string(data[iNdEx:postStringIndexmapvalue])
+			iNdEx = postStringIndexmapvalue
+			if m.Filters == nil {
+				m.Filters = make(map[string]string)
+			}
+			m.Filters[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationRangeResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationRangeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationRangeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reservations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Reservations = append(m.Reservations, &Reservation{})
+			if err := m.Reservations[len(m.Reservations)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Size_ |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationAddRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationAddRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationAddRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cidr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Cidr = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Annotations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var keykey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				keykey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapkey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapkey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapkey := int(stringLenmapkey)
+			if intStringLenmapkey < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapkey := iNdEx + intStringLenmapkey
+			if postStringIndexmapkey > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapkey := string(data[iNdEx:postStringIndexmapkey])
+			iNdEx = postStringIndexmapkey
+			var valuekey uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				valuekey |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			var stringLenmapvalue uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLenmapvalue := int(stringLenmapvalue)
+			if intStringLenmapvalue < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+			if postStringIndexmapvalue > l {
+				return io.ErrUnexpectedEOF
+			}
+			mapvalue := string(data[iNdEx:postStringIndexmapvalue])
+			iNdEx = postStringIndexmapvalue
+			if m.Annotations == nil {
+				m.Annotations = make(map[string]string)
+			}
+			m.Annotations[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationAddResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationAddResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationAddResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reservation", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Reservation == nil {
+				m.Reservation = &Reservation{}
+			}
+			if err := m.Reservation.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationRemoveRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationRemoveRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationRemoveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkID = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cidr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPostal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPostal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Cidr = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPostal(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthPostal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReservationRemoveResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPostal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReservationRemoveResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReservationRemoveResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -6672,79 +8239,90 @@ var (
 )
 
 var fileDescriptorPostal = []byte{
-	// 1176 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xb4, 0x58, 0xdd, 0x6e, 0x1b, 0x45,
-	0x14, 0xee, 0xae, 0xff, 0x9a, 0xe3, 0x90, 0xba, 0xd3, 0xfc, 0xb8, 0x9b, 0x36, 0x35, 0x2b, 0x68,
-	0x23, 0x40, 0x1b, 0x64, 0x7e, 0x84, 0xa2, 0x14, 0x70, 0xea, 0x44, 0x18, 0xd1, 0x0a, 0x2d, 0x91,
-	0x28, 0x88, 0x9b, 0x4d, 0x3c, 0x4d, 0x97, 0xd8, 0x5e, 0xb3, 0xbb, 0x0e, 0x0d, 0xef, 0xc0, 0x3d,
-	0x4f, 0xc1, 0x05, 0x17, 0x5c, 0x22, 0x84, 0xb8, 0xe0, 0x0a, 0x71, 0xc1, 0x03, 0x20, 0xe0, 0x11,
-	0x78, 0x00, 0x66, 0x67, 0xce, 0xee, 0xce, 0xd8, 0xe3, 0x24, 0x8d, 0xdb, 0x8b, 0x54, 0xbb, 0xe7,
-	0xcc, 0xf9, 0xd9, 0x6f, 0xbe, 0xf9, 0xce, 0xd4, 0x70, 0xe7, 0xd0, 0x8f, 0x1f, 0x8f, 0xf6, 0x9d,
-	0x83, 0xa0, 0xbf, 0xf1, 0xa5, 0x7f, 0x4c, 0x37, 0x86, 0x41, 0x14, 0x7b, 0xbd, 0x0d, 0x6f, 0xe8,
-	0xe3, 0xa3, 0x33, 0x0c, 0x83, 0x38, 0x20, 0x05, 0x66, 0xb1, 0x5f, 0x84, 0xd2, 0x4e, 0x18, 0x06,
-	0x21, 0xa9, 0x43, 0xa5, 0x4f, 0xa3, 0xc8, 0x3b, 0xa4, 0x75, 0xa3, 0x61, 0xac, 0xcf, 0xb9, 0xe9,
-	0xab, 0x5d, 0x61, 0x4b, 0xfa, 0xc3, 0xf8, 0xc4, 0xfe, 0xde, 0x80, 0xca, 0x03, 0x1a, 0x7f, 0x1d,
-	0x84, 0x47, 0x64, 0x01, 0xcc, 0x4e, 0x1b, 0x57, 0x9a, 0x7e, 0x9b, 0xbc, 0x07, 0x55, 0x6f, 0x30,
-	0x08, 0x62, 0x2f, 0xf6, 0x83, 0x41, 0x54, 0x37, 0x1b, 0x85, 0xf5, 0x6a, 0xf3, 0xa6, 0xc3, 0x4a,
-	0x38, 0x18, 0xe2, 0xb4, 0x72, 0xff, 0xce, 0x20, 0x0e, 0x4f, 0x5c, 0x39, 0x82, 0x10, 0x28, 0x1e,
-	0xf8, 0xdd, 0xb0, 0x5e, 0xe0, 0x29, 0xf9, 0xb3, 0xf5, 0x2e, 0xd4, 0xc6, 0x83, 0x48, 0x0d, 0x0a,
-	0x47, 0xf4, 0x04, 0x2b, 0x27, 0x8f, 0x64, 0x11, 0x4a, 0xc7, 0x5e, 0x6f, 0x44, 0x59, 0xd1, 0xc4,
-	0x26, 0x5e, 0x36, 0xcd, 0x77, 0x0c, 0xfb, 0x77, 0x13, 0x8a, 0x1f, 0x07, 0x41, 0x8f, 0x34, 0xb2,
-	0x6e, 0xab, 0xcd, 0x1a, 0x6f, 0x2a, 0x31, 0xf3, 0x7f, 0x3a, 0x6d, 0xde, 0xff, 0x96, 0xae, 0x7f,
-	0x2b, 0x5f, 0x7a, 0x7a, 0xf3, 0xaf, 0x40, 0xad, 0xef, 0x3d, 0xf1, 0xfb, 0xa3, 0x7e, 0xab, 0xdb,
-	0x0d, 0x19, 0x6e, 0x34, 0xe2, 0x1f, 0x52, 0x74, 0x27, 0xec, 0xc4, 0x86, 0x62, 0x7c, 0x32, 0xa4,
-	0xf5, 0x22, 0xf3, 0x2f, 0x34, 0x17, 0xf2, 0x12, 0x7b, 0xcc, 0xea, 0x72, 0x9f, 0xf5, 0x36, 0x94,
-	0x45, 0x6f, 0xe4, 0x06, 0xcc, 0x0d, 0x04, 0x7e, 0x19, 0xdc, 0xb9, 0x01, 0x77, 0xc1, 0x4c, 0x77,
-	0x61, 0x66, 0xc0, 0xd6, 0xa0, 0x98, 0x74, 0x41, 0xaa, 0x50, 0x69, 0x7f, 0xf6, 0xa0, 0x75, 0xbf,
-	0x73, 0xaf, 0x76, 0x89, 0xcc, 0x41, 0x69, 0xb7, 0xf3, 0x70, 0xa7, 0x5d, 0x33, 0xec, 0x9f, 0x4d,
-	0xa8, 0x6c, 0xfb, 0x83, 0xae, 0x3f, 0x38, 0x24, 0xeb, 0x50, 0x1e, 0xf2, 0x1e, 0xa7, 0xe2, 0x8a,
-	0xfe, 0xf1, 0x2e, 0xc7, 0xb9, 0x52, 0x90, 0xb8, 0x82, 0xc9, 0xcf, 0x80, 0x9b, 0x71, 0xd5, 0x13,
-	0x78, 0x72, 0x14, 0x19, 0x57, 0xf1, 0x95, 0x81, 0x3b, 0xef, 0xf5, 0x7a, 0xc1, 0x81, 0x17, 0xd3,
-	0x3d, 0xbf, 0x4f, 0xeb, 0x25, 0xe6, 0x2e, 0xb8, 0x8a, 0x8d, 0x58, 0x70, 0x79, 0x9f, 0x95, 0xe1,
-	0xfe, 0x32, 0xf7, 0x67, 0xef, 0x8c, 0x28, 0xd5, 0x90, 0xf6, 0xa8, 0x17, 0x89, 0xf0, 0x0a, 0x77,
-	0xcb, 0xa6, 0x99, 0x21, 0xfe, 0xd1, 0x80, 0x6b, 0x78, 0x22, 0x5c, 0x6f, 0x70, 0x48, 0x5d, 0xfa,
-	0xd5, 0x88, 0x46, 0xf1, 0xc4, 0x81, 0x62, 0xe7, 0x21, 0xf2, 0xbf, 0x11, 0x09, 0x4a, 0x2e, 0x7f,
-	0x66, 0xc0, 0x55, 0x1e, 0xf9, 0xbd, 0x98, 0x86, 0x29, 0x68, 0x2f, 0xcb, 0x07, 0x4c, 0x4e, 0xe7,
-	0xec, 0x8a, 0x75, 0x02, 0xbc, 0x34, 0xca, 0xda, 0x84, 0x79, 0xd9, 0xf1, 0x54, 0x8d, 0xef, 0xc1,
-	0xa2, 0x5a, 0x28, 0x1a, 0x32, 0x00, 0x28, 0xe3, 0xc1, 0x65, 0x24, 0x64, 0xc4, 0x12, 0x25, 0x5d,
-	0xcd, 0x2b, 0x5d, 0x65, 0x5e, 0xdd, 0x27, 0xd9, 0x3f, 0x18, 0x70, 0x15, 0x57, 0xb2, 0x23, 0x92,
-	0x82, 0xd1, 0x51, 0x19, 0x22, 0xd2, 0xde, 0x91, 0xd3, 0xe6, 0x8b, 0xcf, 0xa9, 0x2b, 0xe6, 0x33,
-	0xd4, 0x95, 0x2d, 0x20, 0x72, 0x1b, 0x08, 0xc4, 0x6d, 0xa8, 0xe0, 0xa7, 0xe2, 0x89, 0x50, 0x71,
-	0x48, 0x9d, 0xf6, 0xed, 0x1c, 0x48, 0xda, 0x0f, 0x8e, 0xa7, 0x31, 0xc0, 0x5e, 0x81, 0xa5, 0xb1,
-	0x75, 0xa2, 0x90, 0xfd, 0x8b, 0x01, 0xb5, 0xe4, 0x88, 0x29, 0xfc, 0x39, 0x5b, 0xe2, 0x74, 0x8c,
-	0xda, 0x1a, 0x67, 0x94, 0x9d, 0x85, 0x3e, 0x67, 0x3a, 0x7d, 0x00, 0x57, 0xa5, 0x2a, 0x08, 0xe1,
-	0x2d, 0x28, 0x25, 0x9a, 0x91, 0xee, 0xf8, 0x5c, 0xde, 0x8c, 0xb0, 0x6b, 0x29, 0xf4, 0x9f, 0x01,
-	0x0b, 0xc9, 0x1a, 0x89, 0x3f, 0xa7, 0xab, 0xe6, 0xae, 0x4e, 0xeb, 0x5f, 0xca, 0x6a, 0x9d, 0x9b,
-	0x5a, 0xc9, 0xc8, 0x14, 0xea, 0x8e, 0x62, 0x9f, 0xbe, 0x9e, 0x4b, 0xe3, 0x67, 0x25, 0xe1, 0xeb,
-	0x70, 0x25, 0xeb, 0x16, 0xe1, 0xbb, 0x09, 0xc5, 0x04, 0x26, 0x64, 0x81, 0x84, 0x1e, 0x37, 0xdb,
-	0x6f, 0x21, 0xe4, 0x0a, 0xeb, 0xce, 0xe4, 0x8d, 0xbd, 0x08, 0x44, 0x0e, 0x43, 0x12, 0x7e, 0x2a,
-	0x92, 0x7d, 0x42, 0xe3, 0xfb, 0xde, 0x93, 0x34, 0xd9, 0xf9, 0x67, 0x82, 0x84, 0x9d, 0xa9, 0x60,
-	0x97, 0x96, 0x4b, 0x13, 0x63, 0xb9, 0x5f, 0x99, 0x6c, 0xe2, 0x70, 0x50, 0x68, 0x7f, 0xfa, 0x4e,
-	0xa7, 0x74, 0x29, 0xe8, 0x45, 0xb4, 0x28, 0x89, 0xa8, 0x26, 0xf9, 0xf3, 0x11, 0x51, 0xb5, 0x50,
-	0x2e, 0xa2, 0xfb, 0xc2, 0xae, 0x8a, 0x68, 0xba, 0x38, 0xf3, 0x6a, 0x4f, 0xc0, 0x17, 0xb0, 0xdc,
-	0xc2, 0x09, 0x87, 0xf7, 0x8c, 0x0b, 0x6d, 0x48, 0x3a, 0x53, 0x4d, 0x65, 0xa6, 0xda, 0x2d, 0x58,
-	0x99, 0xc8, 0x9e, 0x4b, 0x1e, 0x36, 0xa6, 0x48, 0x5e, 0xda, 0x75, 0xea, 0xb4, 0x3f, 0x07, 0x6b,
-	0x7b, 0xd4, 0x3b, 0x9a, 0xb9, 0x49, 0x8d, 0x98, 0xdb, 0x7f, 0x1a, 0xb0, 0xaa, 0x4d, 0xfe, 0xd4,
-	0xd0, 0xb6, 0xa1, 0x4c, 0x93, 0xbb, 0x70, 0x2a, 0x09, 0xaf, 0x89, 0x75, 0xd3, 0x73, 0x3b, 0xfc,
-	0xea, 0x8c, 0xfc, 0xc0, 0x58, 0x6b, 0x07, 0xaa, 0x92, 0x59, 0xc3, 0x8e, 0x86, 0xcc, 0x8e, 0x6a,
-	0x13, 0x78, 0x15, 0x1e, 0x22, 0x33, 0xe5, 0x5f, 0x03, 0x48, 0xd2, 0xe2, 0xb3, 0xdf, 0x50, 0xf2,
-	0xa1, 0xee, 0xfe, 0xb5, 0x9e, 0x81, 0xa2, 0x56, 0x3c, 0x5d, 0x03, 0x67, 0x56, 0xb1, 0xbb, 0xe2,
-	0x58, 0x5f, 0x94, 0x58, 0xdf, 0x1a, 0xb0, 0xe4, 0x8a, 0xdb, 0xd9, 0x85, 0x81, 0x62, 0x12, 0x82,
-	0xe9, 0xb2, 0x5b, 0x6a, 0x6e, 0x90, 0x61, 0x2c, 0xa8, 0x30, 0x32, 0x32, 0x3e, 0xf6, 0xc2, 0x2e,
-	0x17, 0xf9, 0xcb, 0x2e, 0x7f, 0xb6, 0xeb, 0xb0, 0x3c, 0xde, 0x8e, 0xf8, 0xa2, 0xe6, 0x4f, 0xe5,
-	0xe4, 0x4e, 0x9f, 0xfc, 0xf7, 0x8b, 0xdc, 0x83, 0x79, 0xf9, 0x26, 0x45, 0xea, 0xd3, 0x6e, 0x71,
-	0xd6, 0x75, 0x8d, 0x07, 0x11, 0xba, 0x0b, 0x90, 0xdf, 0x41, 0xc8, 0xb2, 0xfe, 0x6e, 0x64, 0xad,
-	0x4c, 0xd8, 0x31, 0x7c, 0x17, 0x5e, 0x50, 0x2e, 0x17, 0x44, 0x2d, 0x25, 0x8f, 0x08, 0xcb, 0xd2,
-	0xb9, 0x30, 0xcf, 0x26, 0xcc, 0x65, 0x63, 0x9c, 0x2c, 0x69, 0x2f, 0x0f, 0xd6, 0xf2, 0xb8, 0x19,
-	0x63, 0xdf, 0x84, 0x0a, 0x4e, 0x30, 0x72, 0x4d, 0x33, 0x7d, 0xad, 0x45, 0xd5, 0x98, 0x7f, 0x78,
-	0x3e, 0x8e, 0x88, 0x94, 0x5b, 0xe9, 0x79, 0x65, 0xc2, 0xae, 0x86, 0x8b, 0xf1, 0x22, 0x85, 0x2b,
-	0x83, 0x4c, 0x0a, 0x57, 0xe7, 0x50, 0xb2, 0x77, 0xb2, 0x80, 0xe3, 0xde, 0x69, 0x86, 0x07, 0xee,
-	0x9d, 0x56, 0xed, 0x3f, 0x82, 0x2b, 0x63, 0x8a, 0x42, 0x56, 0xf9, 0x6a, 0xbd, 0x40, 0x5a, 0x37,
-	0xf4, 0x4e, 0xcc, 0xf6, 0x90, 0x1d, 0xa1, 0x49, 0x8d, 0x22, 0xb7, 0xa6, 0xab, 0x97, 0xc8, 0xda,
-	0x38, 0x4b, 0xde, 0xc8, 0xfb, 0x50, 0x95, 0x0e, 0x27, 0x59, 0x99, 0x22, 0x11, 0x56, 0x7d, 0xd2,
-	0x81, 0x19, 0x3a, 0xb0, 0xa0, 0x9e, 0x07, 0x22, 0xc8, 0xa4, 0x3d, 0xb3, 0xd6, 0xaa, 0xd6, 0x27,
-	0x52, 0x6d, 0xbf, 0xfa, 0xdb, 0xdf, 0x6b, 0xc6, 0x1f, 0xec, 0xef, 0x2f, 0xf6, 0xf7, 0xdd, 0x3f,
-	0x6b, 0x97, 0xe0, 0xfa, 0x41, 0xd0, 0x77, 0x92, 0x9f, 0x38, 0x1c, 0x7f, 0xf0, 0x28, 0xf4, 0x1c,
-	0xfc, 0x75, 0x83, 0xe5, 0xd8, 0x2f, 0xf3, 0x9f, 0x38, 0xde, 0xf8, 0x3f, 0x00, 0x00, 0xff, 0xff,
-	0x30, 0x15, 0xf1, 0x09, 0x0d, 0x11, 0x00, 0x00,
+	// 1349 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xb4, 0x58, 0x4f, 0x6f, 0xe3, 0x44,
+	0x14, 0x5f, 0x3b, 0x49, 0xd3, 0xbe, 0x94, 0x6e, 0x3a, 0xfd, 0x93, 0xd4, 0xfd, 0xb3, 0x5d, 0x0b,
+	0x76, 0x0b, 0x8b, 0x52, 0x14, 0xfe, 0x08, 0x55, 0x5d, 0xa0, 0x6d, 0x5a, 0x11, 0xb4, 0x5d, 0x90,
+	0xa9, 0xc4, 0x82, 0xb8, 0xb8, 0xcd, 0x6c, 0xd7, 0x34, 0x89, 0x83, 0xed, 0x96, 0x2d, 0xdf, 0x81,
+	0x3b, 0x9f, 0x62, 0x0f, 0x1c, 0x38, 0x23, 0xc4, 0x81, 0x03, 0x42, 0x1c, 0x38, 0x70, 0x44, 0xc0,
+	0x47, 0xe0, 0x03, 0xec, 0x78, 0x66, 0x6c, 0xcf, 0xd8, 0x93, 0x26, 0x6d, 0xb6, 0x87, 0x56, 0xf6,
+	0xbc, 0x99, 0xf7, 0xde, 0xfc, 0xe6, 0x37, 0xef, 0xfd, 0x1c, 0xb8, 0x7b, 0xec, 0x04, 0x4f, 0x4e,
+	0x0f, 0x6b, 0x47, 0x6e, 0x67, 0xfd, 0x2b, 0xe7, 0x0c, 0xaf, 0xf7, 0x5c, 0x3f, 0xb0, 0xdb, 0xeb,
+	0x76, 0xcf, 0xe1, 0x8f, 0xb5, 0x9e, 0xe7, 0x06, 0x2e, 0xca, 0x91, 0x11, 0xf3, 0x36, 0x14, 0x76,
+	0x3d, 0xcf, 0xf5, 0x50, 0x15, 0x8a, 0x1d, 0xec, 0xfb, 0xf6, 0x31, 0xae, 0x6a, 0xab, 0xda, 0xda,
+	0x84, 0x15, 0xbd, 0x9a, 0x45, 0x32, 0xa5, 0xd3, 0x0b, 0xce, 0xcd, 0x67, 0x1a, 0x14, 0x1f, 0xe2,
+	0xe0, 0x1b, 0xd7, 0x3b, 0x41, 0x53, 0xa0, 0x37, 0x1b, 0x7c, 0xa6, 0xee, 0x34, 0xd0, 0xfb, 0x50,
+	0xb2, 0xbb, 0x5d, 0x37, 0xb0, 0x03, 0xc7, 0xed, 0xfa, 0x55, 0x7d, 0x35, 0xb7, 0x56, 0xaa, 0x2f,
+	0xd7, 0x48, 0x88, 0x1a, 0x5f, 0x52, 0xdb, 0x4a, 0xec, 0xbb, 0xdd, 0xc0, 0x3b, 0xb7, 0xc4, 0x15,
+	0x08, 0x41, 0xfe, 0xc8, 0x69, 0x79, 0xd5, 0x1c, 0x75, 0x49, 0x9f, 0x8d, 0xf7, 0xa0, 0x9c, 0x5e,
+	0x84, 0xca, 0x90, 0x3b, 0xc1, 0xe7, 0x3c, 0x72, 0xf8, 0x88, 0x66, 0xa1, 0x70, 0x66, 0xb7, 0x4f,
+	0x31, 0x09, 0x1a, 0x8e, 0xb1, 0x97, 0x0d, 0xfd, 0x5d, 0xcd, 0xfc, 0x45, 0x83, 0x92, 0x85, 0x7d,
+	0xec, 0x9d, 0x51, 0x0f, 0x68, 0x09, 0x26, 0xba, 0x2c, 0x99, 0x38, 0xf7, 0x64, 0x20, 0xce, 0x40,
+	0x4f, 0x32, 0x40, 0x3b, 0xf2, 0xb6, 0x72, 0x74, 0x5b, 0xb7, 0xe9, 0xb6, 0x04, 0xc7, 0x17, 0x6f,
+	0x6d, 0xe4, 0x6d, 0xfc, 0xae, 0x43, 0xfe, 0x13, 0xd7, 0x6d, 0xa3, 0xd5, 0x18, 0xf4, 0x52, 0xbd,
+	0x4c, 0x93, 0x08, 0x87, 0xe9, 0xbf, 0x66, 0x83, 0x1e, 0xc3, 0xa6, 0xea, 0x18, 0x8c, 0x64, 0xea,
+	0xc5, 0x67, 0xf0, 0x1a, 0x94, 0x3b, 0xf6, 0x53, 0xa7, 0x73, 0xda, 0xd9, 0x6a, 0xb5, 0x3c, 0x72,
+	0xfc, 0xd8, 0xa7, 0xe7, 0x91, 0xb7, 0x32, 0xe3, 0xc8, 0x84, 0x7c, 0x70, 0xde, 0xc3, 0xd5, 0x3c,
+	0xb1, 0x4f, 0xd5, 0xa7, 0x92, 0x10, 0x07, 0x64, 0xd4, 0xa2, 0x36, 0xe3, 0x1d, 0x18, 0x63, 0xb9,
+	0x0d, 0x40, 0x9e, 0x91, 0x49, 0x8f, 0xc8, 0x34, 0x32, 0x60, 0x2b, 0x90, 0x0f, 0xb3, 0x40, 0x25,
+	0x28, 0x36, 0x3e, 0x7f, 0xb8, 0xb5, 0xdf, 0xdc, 0x29, 0xdf, 0x40, 0x13, 0x50, 0xd8, 0x6b, 0x3e,
+	0xda, 0x6d, 0x94, 0x35, 0xf3, 0x27, 0x1d, 0x8a, 0xdb, 0x4e, 0xb7, 0xe5, 0x74, 0x8f, 0xd1, 0x1a,
+	0x8c, 0xf5, 0x68, 0x8e, 0x7d, 0x71, 0xe5, 0xf6, 0x74, 0x96, 0x69, 0xca, 0xe7, 0x04, 0xca, 0x73,
+	0xe7, 0x03, 0xe0, 0x26, 0x57, 0xce, 0x66, 0x78, 0x52, 0x14, 0xc9, 0x95, 0xe3, 0xaf, 0x04, 0xdc,
+	0x49, 0xbb, 0xdd, 0x76, 0x8f, 0xec, 0x00, 0x1f, 0x38, 0x1d, 0x5c, 0x2d, 0x10, 0x73, 0xce, 0x92,
+	0xc6, 0x90, 0x01, 0xe3, 0x87, 0x24, 0x0c, 0xb5, 0x8f, 0x51, 0x7b, 0xfc, 0x4e, 0x88, 0x52, 0xf2,
+	0x70, 0x1b, 0xdb, 0x3e, 0x5b, 0x5e, 0xa4, 0x66, 0x71, 0x68, 0x64, 0x88, 0x7f, 0xd4, 0x60, 0x86,
+	0x5f, 0x6c, 0xcb, 0xee, 0x1e, 0x63, 0x0b, 0x7f, 0x7d, 0x8a, 0xfd, 0x20, 0x53, 0x17, 0xc8, 0xa5,
+	0xf2, 0x9d, 0x6f, 0x99, 0x83, 0x82, 0x45, 0x9f, 0x09, 0x70, 0xc5, 0xc7, 0x4e, 0x3b, 0xc0, 0x5e,
+	0x04, 0xda, 0x2b, 0x62, 0x9d, 0x10, 0xdd, 0xd5, 0xf6, 0xd8, 0x3c, 0x06, 0x5e, 0xb4, 0xca, 0xd8,
+	0x80, 0x49, 0xd1, 0x70, 0xa9, 0xc4, 0x0f, 0x60, 0x56, 0x0e, 0xe4, 0xf7, 0x08, 0x00, 0x98, 0xf0,
+	0x60, 0x9c, 0x13, 0xd2, 0x27, 0x8e, 0xc2, 0xac, 0x26, 0xa5, 0xac, 0x62, 0xab, 0x6a, 0x4b, 0xe6,
+	0x0f, 0x1a, 0x4c, 0xf3, 0x99, 0xe4, 0x8a, 0x44, 0x60, 0x34, 0x65, 0x86, 0x30, 0xb7, 0x77, 0x45,
+	0xb7, 0xc9, 0xe4, 0x21, 0xcb, 0xa3, 0xfe, 0x02, 0xcb, 0xe3, 0x26, 0x20, 0x31, 0x0d, 0x0e, 0xc4,
+	0x1d, 0x28, 0xf2, 0xad, 0xf2, 0x1b, 0x21, 0xe3, 0x10, 0x19, 0xcd, 0x3b, 0x09, 0x90, 0xb8, 0xe3,
+	0x9e, 0xf5, 0x63, 0x80, 0x59, 0x81, 0xb9, 0xd4, 0x3c, 0x16, 0xc8, 0xfc, 0x4d, 0x83, 0x8a, 0x50,
+	0x44, 0x25, 0x1a, 0x0d, 0xac, 0xd4, 0x19, 0x52, 0xed, 0xa4, 0x49, 0xf5, 0x6a, 0xba, 0x4a, 0x5f,
+	0x33, 0xb1, 0x5a, 0x50, 0xcd, 0x06, 0xe3, 0x98, 0xbe, 0x05, 0x93, 0x5e, 0x62, 0x8b, 0x98, 0x50,
+	0xce, 0x64, 0x28, 0xcd, 0x52, 0x12, 0xed, 0x2f, 0x0d, 0xe6, 0x84, 0x15, 0x02, 0xd9, 0x2e, 0xdf,
+	0xdc, 0xf6, 0x55, 0x05, 0xec, 0x5e, 0x3a, 0xa9, 0x61, 0x29, 0x3a, 0x32, 0x1d, 0x1f, 0xc0, 0x7c,
+	0x3a, 0x2c, 0x87, 0xaf, 0x1e, 0x96, 0xb3, 0xd8, 0x22, 0x15, 0x6a, 0x11, 0x3d, 0x71, 0x12, 0xf1,
+	0x26, 0x1d, 0x87, 0x44, 0xd1, 0x4b, 0x43, 0x65, 0x2e, 0xc2, 0x82, 0xc2, 0x1b, 0x27, 0xf2, 0xcf,
+	0x1a, 0x94, 0xc3, 0x5e, 0x21, 0x31, 0x78, 0x70, 0xaf, 0x56, 0xb1, 0x78, 0x33, 0xcd, 0x62, 0x33,
+	0x5e, 0x7a, 0xcd, 0xf4, 0xfd, 0x10, 0xa6, 0x85, 0x28, 0x1c, 0xf8, 0x5b, 0x50, 0x08, 0x9b, 0x5f,
+	0x44, 0xd8, 0x89, 0x24, 0x19, 0x36, 0xae, 0xa4, 0xe8, 0xff, 0x1a, 0x4c, 0x85, 0x73, 0x86, 0xe6,
+	0xe6, 0x9e, 0x4a, 0xb4, 0xbc, 0x1c, 0xc7, 0x1a, 0xba, 0x46, 0x86, 0x12, 0x96, 0xc9, 0x14, 0xae,
+	0x5a, 0xa2, 0xd7, 0xa1, 0xc4, 0xca, 0xa8, 0xf4, 0x7d, 0x03, 0x6e, 0xc6, 0xd9, 0x72, 0xf8, 0x96,
+	0x21, 0x1f, 0xc2, 0xc4, 0x59, 0x20, 0xa0, 0x47, 0x87, 0xcd, 0xb7, 0x39, 0xe4, 0x12, 0x37, 0x07,
+	0xf2, 0xc6, 0x9c, 0x05, 0x24, 0x2e, 0xe3, 0x24, 0xfc, 0x8c, 0x39, 0xfb, 0x14, 0x07, 0xfb, 0xf6,
+	0xd3, 0xc8, 0xd9, 0xf0, 0xe2, 0x46, 0xc0, 0x4e, 0x97, 0xb0, 0x8b, 0xc2, 0x45, 0x8e, 0x79, 0x38,
+	0x22, 0xad, 0x67, 0xb8, 0xca, 0xb9, 0x42, 0xe1, 0xce, 0xa9, 0xd5, 0x40, 0x5e, 0x50, 0x03, 0x0a,
+	0xe7, 0xd7, 0xa3, 0x06, 0xe4, 0x40, 0x89, 0x1a, 0x38, 0x64, 0xe3, 0xb2, 0x1a, 0x88, 0x26, 0xc7,
+	0x56, 0xe5, 0x0d, 0xf8, 0x12, 0xe6, 0xb7, 0xb8, 0x54, 0xe3, 0x82, 0xf9, 0x4a, 0x07, 0x12, 0x89,
+	0x43, 0x5d, 0x12, 0x87, 0xe6, 0x16, 0x54, 0x32, 0xde, 0x93, 0xde, 0xcd, 0x13, 0x93, 0x7a, 0x77,
+	0x94, 0x75, 0x64, 0x34, 0xbf, 0x00, 0x63, 0xfb, 0xb4, 0x7d, 0x32, 0x72, 0x92, 0xaa, 0x52, 0xf9,
+	0xa7, 0x06, 0x8b, 0x4a, 0xe7, 0x97, 0x86, 0xb6, 0x01, 0x63, 0x38, 0xfc, 0x36, 0x8d, 0x4a, 0xc2,
+	0xeb, 0x6c, 0x5e, 0x7f, 0xdf, 0x35, 0xfa, 0x29, 0xcb, 0xf9, 0xc1, 0xd7, 0x1a, 0xbb, 0x50, 0x12,
+	0x86, 0x15, 0xec, 0x58, 0x15, 0xd9, 0x51, 0xaa, 0x03, 0x8d, 0x42, 0x97, 0x88, 0x4c, 0xf9, 0x4f,
+	0x03, 0x14, 0xa6, 0xf8, 0xe2, 0x0f, 0x14, 0x7d, 0xa4, 0xea, 0xc3, 0x6b, 0x31, 0x28, 0x72, 0xc4,
+	0x6b, 0x6e, 0xc2, 0xf7, 0xd9, 0xb5, 0xbe, 0x2a, 0xb1, 0xbe, 0xa3, 0xf2, 0x84, 0x7e, 0x66, 0x5c,
+	0x19, 0x28, 0x52, 0x42, 0xb8, 0xbb, 0xf8, 0x73, 0x2b, 0x19, 0x10, 0x61, 0xcc, 0xc9, 0x30, 0x12,
+	0x32, 0x3e, 0xb1, 0xbd, 0x16, 0x2d, 0xf2, 0xe3, 0x16, 0x7d, 0x36, 0xab, 0xa1, 0xa6, 0x90, 0xd3,
+	0x61, 0x3b, 0xaa, 0x3f, 0x1b, 0x0f, 0x3f, 0x4e, 0xc3, 0x9f, 0x43, 0x88, 0x74, 0x9c, 0x14, 0x3f,
+	0x09, 0x50, 0xb5, 0xdf, 0xe7, 0x88, 0xb1, 0xa0, 0xb0, 0x70, 0x84, 0xee, 0x03, 0x24, 0x62, 0x1a,
+	0xcd, 0xab, 0x45, 0xbe, 0x51, 0xc9, 0x8c, 0xf3, 0xe5, 0x7b, 0xf0, 0x92, 0xa4, 0x92, 0x91, 0x1c,
+	0x4a, 0x6c, 0x11, 0x86, 0xa1, 0x32, 0x71, 0x3f, 0x1f, 0x43, 0x39, 0xad, 0x42, 0xd1, 0xd2, 0x45,
+	0x4a, 0xd8, 0x58, 0xee, 0x63, 0xe5, 0x0e, 0x9b, 0x30, 0x25, 0xab, 0x32, 0x64, 0xf4, 0x57, 0x88,
+	0xc6, 0xa2, 0xd2, 0xc6, 0x5d, 0x59, 0x30, 0x9d, 0x11, 0x51, 0x28, 0x1b, 0x5e, 0xda, 0xeb, 0x4a,
+	0x3f, 0x33, 0xf7, 0xb9, 0x01, 0x13, 0xb1, 0x6c, 0x41, 0x73, 0x4a, 0xb1, 0x64, 0xcc, 0xa7, 0x87,
+	0x63, 0x55, 0x5e, 0xe4, 0x1d, 0x1b, 0xcd, 0x28, 0xd4, 0x86, 0x31, 0x2b, 0x0f, 0x26, 0x07, 0x9d,
+	0xb4, 0x5f, 0x24, 0xf8, 0x96, 0xf2, 0xae, 0x64, 0xc6, 0xe5, 0xe5, 0xac, 0x9d, 0x0a, 0xcb, 0xa5,
+	0xc6, 0x2d, 0x2c, 0x97, 0xfb, 0x6e, 0xc8, 0x55, 0xb1, 0x61, 0x71, 0xae, 0x2a, 0x9a, 0x25, 0xe7,
+	0xaa, 0xb2, 0xbb, 0x3d, 0x80, 0x9b, 0xa9, 0x0a, 0x8a, 0xd8, 0xc1, 0xa9, 0x1b, 0x82, 0xb1, 0xa4,
+	0x36, 0x72, 0x6f, 0x8f, 0x48, 0xc9, 0xc8, 0xd6, 0x64, 0x74, 0xab, 0x7f, 0xb5, 0x66, 0x5e, 0x57,
+	0x07, 0x95, 0x73, 0xf4, 0x01, 0x94, 0x84, 0x62, 0x84, 0x2a, 0x7d, 0x4a, 0xa2, 0x51, 0xcd, 0x1a,
+	0x44, 0xf6, 0x8a, 0xf7, 0x3f, 0x66, 0xaf, 0xa2, 0x46, 0xc5, 0xec, 0x55, 0x15, 0x8c, 0xed, 0x7b,
+	0xbf, 0xfe, 0xb3, 0xa2, 0xfd, 0x41, 0xfe, 0xfe, 0x26, 0x7f, 0xdf, 0xff, 0xbb, 0x72, 0x03, 0x16,
+	0x8e, 0xdc, 0x4e, 0x2d, 0xfc, 0x89, 0xb5, 0xe6, 0x74, 0x1f, 0x7b, 0x76, 0x8d, 0xff, 0xba, 0x4a,
+	0x7c, 0x1c, 0x8e, 0xd1, 0x9f, 0x58, 0xdf, 0x7c, 0x1e, 0x00, 0x00, 0xff, 0xff, 0x2a, 0xdd, 0xa3,
+	0x18, 0x8d, 0x15, 0x00, 0x00,
 }
