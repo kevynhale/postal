@@ -1,164 +1,85 @@
-hash: 2db638488e076f0014926656e78e22a29462ef4b0aa982d908bad3d4118284b4
-updated: 2016-05-18T11:59:36.584355869-06:00
+hash: 4b0216ca1f3435fbe4df3cbb0f3fdbfe3daf624dfb009ce563b7ecbdc50e5c94
+updated: 2016-06-23T15:11:40.881268143-06:00
 imports:
-- name: bitbucket.org/ww/goautoneg
-  version: 75cd24fc2f2c
-- name: github.com/akrennmair/gopcap
-  version: 00e11033259acb75598ba416495bb708d864a010
-- name: github.com/armon/consul-api
-  version: dcfedd50ed5334f96adee43fc88518a4f095e15c
-- name: github.com/beorn7/perks
-  version: b965b613227fddccbfffe13eae360ed3fa822f8d
-- name: github.com/bgentry/speakeasy
-  version: 36e9cfdd690967f4f690c6edcc9ffacd006014a0
-- name: github.com/boltdb/bolt
-  version: 0fd4c0547d204c7b1cad6db6f3adad5f2cf453e5
-- name: github.com/BurntSushi/toml
-  version: f0aeabca5a127c4078abb8c8d64298b147264b55
 - name: github.com/cenk/backoff
   version: 32cd0c5b3aef12c76ed64aaf678f6c79736be7dc
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
-- name: github.com/cockroachdb/cmux
-  version: 9d8f8e431ac319fe4e84d8eaffa4061ddfea1efb
-- name: github.com/codegangsta/cli
-  version: b5232bb2934f606f9f27a1305f1eea224e8e8b88
 - name: github.com/coreos/etcd
   version: ffd1fa6f52dd17332ec5849d1af3314828a6bd56
   subpackages:
   - clientv3
-- name: github.com/coreos/go-etcd
-  version: 003851be7bb0694fe3cc457a49529a19388ee7cf
-- name: github.com/coreos/go-semver
-  version: 568e959cd89871e61434c1143528d9162da89ef2
+  - pkg/flags
+  - auth/authpb
+  - etcdserver/api/v3rpc/rpctypes
+  - etcdserver/etcdserverpb
+  - mvcc/mvccpb
+  - pkg/tlsutil
+  - pkg/transport
+  - pkg/types
 - name: github.com/coreos/go-systemd
   version: cea488b4e6855fee89b6c22a811e3c5baca861b6
+  subpackages:
+  - journal
 - name: github.com/coreos/pkg
   version: 2c77715c4df99b5420ffcae14ead08f52104065d
   subpackages:
-  - /capnslog
+  - capnslog
 - name: github.com/cpuguy83/go-md2man
   version: 71acacd42f85e5e82f70a55327789582a5200a90
-- name: github.com/davecgh/go-spew
-  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
-  - spew
+  - md2man
 - name: github.com/dustin/go-humanize
   version: f3565c9525600a911af3bd34f8b535ea81b2a9e0
-- name: github.com/fsnotify/fsnotify
-  version: 30411dbcefb7a1da7e84f75530ad3abe4011b4f8
 - name: github.com/ghodss/yaml
   version: e8e0db9016175449df0e9c4b6e6995a9433a395c
-- name: github.com/godbus/dbus
-  version: 32c6cc29c14570de4cf6d7e7737d68fb2d01ad15
 - name: github.com/gogo/protobuf
   version: 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
   subpackages:
-  - /proto
-  - /protoc-gen-gogo
-  - /gogoproto
-- name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  - proto
+  - protoc-gen-gogo
+  - gogoproto
 - name: github.com/golang/protobuf
   version: 7cc19b78d562895b13596ddce7aafb59dd789318
   subpackages:
-  - /proto
-- name: github.com/google/btree
-  version: cc6329d4279e3f025a53a83c397d2339b5705c45
-- name: github.com/hashicorp/hcl
-  version: 9a905a34e6280ce905da1a32344b25e81011197a
+  - proto
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
-- name: github.com/jonboulle/clockwork
-  version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
-- name: github.com/julienschmidt/httprouter
-  version: 77366a47451a56bb3ba682481eed85b64fea14e8
-- name: github.com/kr/pty
-  version: f7ee69f31298ecbe5d2b349c711e2547a617d398
-- name: github.com/magiconair/properties
-  version: c265cfa48dda6474e208715ca93e987829f572f8
-- name: github.com/mattn/go-runewidth
-  version: d6bea18f789704b5f83375793155289da36a3c7f
-- name: github.com/matttproud/golang_protobuf_extensions
-  version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
-- name: github.com/mitchellh/mapstructure
-  version: d2dd0262208475919e1a362f675cfc0e7c10e905
 - name: github.com/olekukonko/tablewriter
   version: cca8bbc0798408af109aaaa239cbd2634846b340
 - name: github.com/pkg/errors
   version: 42fa80f2ac6ed17a977ce826074bd3009593fa9d
-- name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
-  subpackages:
-  - difflib
-- name: github.com/prometheus/client_golang
-  version: e51041b3fa41cece0dca035740ba6411905be473
-- name: github.com/prometheus/client_model
-  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
-- name: github.com/prometheus/common
-  version: ffe929a3f4c4faeaa10f2b9535c2b1be3ad15650
-- name: github.com/prometheus/procfs
-  version: 454a56f35412459b5e684fd5ec0f9211b94f002a
 - name: github.com/russross/blackfriday
   version: 300106c228d52c8941d4b3de6054a6062a86dda3
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
-- name: github.com/Sirupsen/logrus
-  version: cd7d1bbe41066b6c1f19780f895901052150a575
-- name: github.com/spacejam/loghisto
-  version: 323309774dec8b7430187e46cd0793974ccca04a
-- name: github.com/spf13/cast
-  version: 27b586b42e29bec072fe7379259cc719e1289da6
 - name: github.com/spf13/cobra
   version: 1c44ec8d3f1552cac48999f9306da23c4d8a288b
-- name: github.com/spf13/jwalterweatherman
-  version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
 - name: github.com/spf13/pflag
   version: 08b1a584251b5b62f458943640fc8ebd4d50aaa5
-- name: github.com/spf13/viper
-  version: d8a428b8a30606e1d0b355d91edf282609ade1a6
-- name: github.com/stretchr/objx
-  version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
   version: c5d7a69bf8a2c9c374798160849c071093e41dd1
   subpackages:
-  - /assert
+  - assert
 - name: github.com/twinj/uuid
   version: 89173bcdda19db0eb88aef1e1cb1cb2505561d31
-- name: github.com/ugorji/go
-  version: f1f1a805ed361a0e078bb537e4ea78cd37dcf065
-- name: github.com/xiang90/probing
-  version: 6a0cc1ae81b4cc11db5e491e030e4b98fba79c19
-- name: github.com/xordataexchange/crypt
-  version: 749e360c8f236773f28fc6d3ddfce4a470795227
-- name: golang.org/x/crypto
-  version: 1351f936d976c60a0a48d728281922cf63eafb8d
 - name: golang.org/x/net
   version: 6acef71eb69611914f7a30939ea9f6e194c78172
   subpackages:
-  - /context
-- name: golang.org/x/oauth2
-  version: e86e2718db89775a4604abc10a5d3a5672e7336e
-- name: golang.org/x/sys
-  version: 9c60d1c508f5134d1ca726b4641db998f2523357
-- name: golang.org/x/text
-  version: f773ec03ce334298742df7f3108fc0d402646d22
-- name: google.golang.org/api
-  version: b34a26664e9b96e9d4aab8a6e8175ea07af5b8b6
-- name: google.golang.org/appengine
-  version: e234e71924d4aa52444bc76f2f831f13fa1eca60
-- name: google.golang.org/cloud
-  version: e0379989b50c627becfa169dfeacbbb899453e81
+  - context
+  - http2
+  - trace
+  - http2/hpack
+  - internal/timeseries
 - name: google.golang.org/grpc
   version: 7f24e5e90e7e79ee1c68359b05908b668a23ffb2
-- name: gopkg.in/airbrake/gobrake.v2
-  version: 31c8ff1fb8b79a6947e6565e9a6df535f98a6b94
-- name: gopkg.in/cheggaaa/pb.v1
-  version: 8808370bf63524e115da1371ba42bce6739f3a6b
-- name: gopkg.in/gemnasium/logrus-airbrake-hook.v2
-  version: 31e6fd4bd5a98d8ee7673d24bc54ec73c31810dd
-- name: gopkg.in/yaml.v1
-  version: 9f9df34309c04878acc86042b16630b0f696e1de
-- name: gopkg.in/yaml.v2
-  version: a83829b6f1293c91addabc89d0571c246397bbf4
+  subpackages:
+  - credentials
+  - codes
+  - grpclog
+  - internal
+  - metadata
+  - naming
+  - transport
+  - peer
 devImports: []
