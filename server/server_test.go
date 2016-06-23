@@ -488,3 +488,84 @@ func TestSrvBulkAllocate(t *testing.T) {
 
 	test.execute(t)
 }
+
+func TestAllocateReleaseAllocate(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     10000,
+			Type:        api.Pool_DYNAMIC,
+		})
+		assert.NoError(poolErr)
+
+		resp1, err1 := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		resp2, err2 := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		resp3, err3 := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		assert.NoError(err1)
+		assert.NoError(err2)
+		assert.NoError(err3)
+		assert.NotEqual(resp1.Binding.Address, resp2.Binding.Address)
+		assert.NotEqual(resp1.Binding.Address, resp3.Binding.Address)
+
+		_, err1 = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: resp1.Binding.ID,
+		})
+		assert.NoError(err1)
+
+		_, err2 = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: resp2.Binding.ID,
+		})
+		assert.NoError(err2)
+
+		_, err3 = client.ReleaseAddress(context.TODO(), &api.ReleaseAddressRequest{
+			PoolID:    poolResp.Pool.ID,
+			BindingID: resp3.Binding.ID,
+		})
+		assert.NoError(err3)
+
+		resp1, err1 = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		resp2, err2 = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		resp3, err3 = client.BindAddress(context.TODO(), &api.BindAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "",
+		})
+
+		assert.NoError(err1)
+		assert.NoError(err2)
+		assert.NoError(err3)
+		assert.NotEqual(resp1.Binding.Address, resp2.Binding.Address)
+		assert.NotEqual(resp1.Binding.Address, resp3.Binding.Address)
+	})
+
+	test.execute(t)
+}

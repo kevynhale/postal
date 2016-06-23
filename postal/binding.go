@@ -30,7 +30,7 @@ type etcdBinding struct {
 }
 
 func (b *etcdBinding) isBound() bool {
-	return b.BindTime > 0 && b.ReleaseTime == 0
+	return b.BindTime > b.ReleaseTime
 }
 
 func (b *etcdBinding) annotate(key, value string) {
