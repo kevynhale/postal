@@ -8,6 +8,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
+	"github.com/jive/postal/postal"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -26,6 +27,8 @@ func (srvTest sandboxedServerTest) execute(t *testing.T) {
 
 	defer cli.Close()
 	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	go postal.NewJanitor(cli).Run()
 
 	serverAddr := "127.0.0.1:54321"
 

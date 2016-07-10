@@ -24,6 +24,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/stretchr/testify/assert"
@@ -79,6 +80,49 @@ func TestAllocate(t *testing.T) {
 	binding3, err := pool.Allocate(net.ParseIP("10.0.0.3"))
 	assert.Error(err)
 	assert.Nil(binding3)
+}
+
+func TestReleaseHard(t *testing.T) {
+	capnslog.SetGlobalLogLevel(capnslog.DEBUG)
+	assert := assert.New(t)
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	assert.NoError(err)
+
+	j := &Janitor{etcd: cli}
+	go j.Run()
+
+	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/24")
+	assert.NoError(err)
+
+	pool, err := nm.NewPool(nil, 5, api.Pool_FIXED)
+	assert.NoError(err)
+
+	binding, err := pool.Allocate(net.ParseIP("10.0.0.1"))
+	assert.NoError(err)
+	assert.NotNil(binding)
+
+	assert.Equal(pool.APIPool().ID.NetworkID, binding.PoolID.NetworkID)
+	assert.Equal(pool.APIPool().ID.ID, binding.PoolID.ID)
+	assert.Equal("10.0.0.1", binding.Address)
+
+	assert.NoError(pool.Release(binding, true))
+	assert.Error(pool.Release(binding, true))
+
+	//Give time for the binding to clear
+	time.Sleep(1 * time.Second)
+	binding, err = pool.Allocate(net.ParseIP("10.0.0.1"))
+	assert.NoError(err)
+	assert.NotNil(binding)
+
+	assert.Equal(pool.APIPool().ID.NetworkID, binding.PoolID.NetworkID)
+	assert.Equal(pool.APIPool().ID.ID, binding.PoolID.ID)
+	assert.Equal("10.0.0.1", binding.Address)
 }
 
 func TestSetMaxSize(t *testing.T) {

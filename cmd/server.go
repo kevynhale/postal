@@ -22,6 +22,8 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/pkg/capnslog"
+	"github.com/jive/postal/postal"
 	"github.com/jive/postal/server"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -29,6 +31,7 @@ import (
 
 var etcdEndpoints []string
 var etcdDialTimeout time.Duration
+var serverDebug bool
 
 // serverCmd represents the bind command
 var serverCmd = &cobra.Command{
@@ -36,6 +39,9 @@ var serverCmd = &cobra.Command{
 	Short: "Start postal server",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		if serverDebug {
+			capnslog.SetGlobalLogLevel(capnslog.DEBUG)
+		}
 		plog.Info("starting postal server")
 		cli, err := clientv3.New(clientv3.Config{
 			Endpoints:   etcdEndpoints,
@@ -47,6 +53,9 @@ var serverCmd = &cobra.Command{
 			plog.Fatalf("failed to open etcd client conn: %s", err)
 		}
 		defer cli.Close()
+
+		plog.Info("starting binding janitor")
+		go postal.NewJanitor(cli).Run()
 
 		var lis net.Listener
 		plog.Infof("listening for client connections on [%s]", globalFlags.Endpoint)
@@ -76,4 +85,5 @@ func init() {
 
 	serverCmd.Flags().StringSliceVar(&etcdEndpoints, "etcd", []string{"127.0.0.1:2379"}, "etcd servers to use")
 	serverCmd.Flags().DurationVar(&etcdDialTimeout, "etcd-timeout", 5*time.Second, "etcd dial timeout")
+	serverCmd.Flags().BoolVar(&serverDebug, "debug", false, "enable debug logging")
 }

@@ -22,6 +22,7 @@ import (
 	"regexp"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
@@ -30,6 +31,10 @@ import (
 
 // PostalEtcdKeyPrefix defines the prefix used for all postal registry keys stored in etcd
 const PostalEtcdKeyPrefix = "/postal/registry/v1/"
+
+var (
+	plog = capnslog.NewPackageLogger("github.com/jive/postal", "postal")
+)
 
 // Config is the base object which configures settings for postal internals
 type Config struct {
