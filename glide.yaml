@@ -1,17 +1,17 @@
 package: github.com/jive/postal
 import:
 - package: github.com/coreos/etcd
-  version: v3.0.0-beta.0
+  version: v3.0.2
   subpackages:
   - clientv3
 - package: github.com/pkg/errors
   version: v0.3.0
 - package: github.com/golang/protobuf
-  version: 7cc19b78d562895b13596ddce7aafb59dd789318
+  version: 3607a4a99491b23e98d1a68cb408800bdcfb5698
   subpackages:
   - /proto
 - package: github.com/gogo/protobuf
-  version: 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
+  version: 2752d97bbd91927dd1c43296dbf8700e50e2708c
   subpackages:
   - /proto
   - /protoc-gen-gogo
@@ -22,7 +22,7 @@ import:
   subpackages:
   - /context
 - package: google.golang.org/grpc
-  version: 7f24e5e90e7e79ee1c68359b05908b668a23ffb2
+  version: ~1.x
 - package: github.com/stretchr/testify
   version: c5d7a69bf8a2c9c374798160849c071093e41dd1
   subpackages:
@@ -34,3 +34,5 @@ import:
 - package: github.com/coreos/pkg
   subpackages:
   - /capnslog
+- package: github.com/gengo/grpc-gateway
+  version: faa3576c70e270b37279f045637a7d04f632e353

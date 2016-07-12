@@ -620,7 +620,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion2
+const _ = grpc.SupportPackageIsVersion3
 
 // Client API for Postal service
 
@@ -1045,7 +1045,8 @@ var _Postal_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Postal_ReleaseAddress_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: fileDescriptorPostal,
 }
 
 func (m *Error) Marshal() (data []byte, err error) {

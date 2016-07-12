@@ -1,12 +1,12 @@
-hash: 4b0216ca1f3435fbe4df3cbb0f3fdbfe3daf624dfb009ce563b7ecbdc50e5c94
-updated: 2016-06-23T15:11:40.881268143-06:00
+hash: 9fe15688a53c8144b092bb564908bd9a77dd7b04c919894f31c8f9a14fe797c8
+updated: 2016-07-12T13:43:16.22665319-06:00
 imports:
 - name: github.com/cenk/backoff
   version: 32cd0c5b3aef12c76ed64aaf678f6c79736be7dc
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: ffd1fa6f52dd17332ec5849d1af3314828a6bd56
+  version: faeeb2fc7514c5caf7a9a0cc03ac9ee2ff94438b
   subpackages:
   - clientv3
   - pkg/flags
@@ -15,7 +15,6 @@ imports:
   - etcdserver/etcdserverpb
   - mvcc/mvccpb
   - pkg/tlsutil
-  - pkg/transport
   - pkg/types
 - name: github.com/coreos/go-systemd
   version: cea488b4e6855fee89b6c22a811e3c5baca861b6
@@ -31,18 +30,25 @@ imports:
   - md2man
 - name: github.com/dustin/go-humanize
   version: f3565c9525600a911af3bd34f8b535ea81b2a9e0
+- name: github.com/gengo/grpc-gateway
+  version: faa3576c70e270b37279f045637a7d04f632e353
+  subpackages:
+  - runtime
+  - utilities
+  - runtime/internal
 - name: github.com/ghodss/yaml
   version: e8e0db9016175449df0e9c4b6e6995a9433a395c
 - name: github.com/gogo/protobuf
-  version: 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
+  version: 2752d97bbd91927dd1c43296dbf8700e50e2708c
   subpackages:
   - proto
   - protoc-gen-gogo
   - gogoproto
 - name: github.com/golang/protobuf
-  version: 7cc19b78d562895b13596ddce7aafb59dd789318
+  version: 3607a4a99491b23e98d1a68cb408800bdcfb5698
   subpackages:
   - proto
+  - jsonpb
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/olekukonko/tablewriter
@@ -72,7 +78,7 @@ imports:
   - http2/hpack
   - internal/timeseries
 - name: google.golang.org/grpc
-  version: 7f24e5e90e7e79ee1c68359b05908b668a23ffb2
+  version: 13edeeffdea7a41d5aad96c28deb4c7bd01a9397
   subpackages:
   - credentials
   - codes
