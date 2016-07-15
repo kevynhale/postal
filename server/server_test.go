@@ -572,3 +572,53 @@ func TestAllocateReleaseAllocate(t *testing.T) {
 
 	test.execute(t)
 }
+
+func TestConcurrentBind(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     250,
+			Type:        api.Pool_FIXED,
+		})
+		assert.NoError(poolErr)
+
+		_, bulkErr := client.BulkAllocateAddress(context.TODO(), &api.BulkAllocateAddressRequest{
+			PoolID: poolResp.Pool.ID,
+			Cidr:   "10.0.10.0/25",
+		})
+		assert.NoError(bulkErr)
+
+		addrChan := make(chan string)
+
+		for i := 0; i < 20; i++ {
+			go func() {
+				resp, err := client.BindAddress(context.TODO(), &api.BindAddressRequest{
+					PoolID: poolResp.Pool.ID,
+				})
+				assert.NoError(err)
+				addrChan <- resp.Binding.Address
+			}()
+		}
+
+		addresses := map[string]struct{}{}
+
+		for i := 0; i < 20; i++ {
+			addr := <-addrChan
+			if _, ok := addresses[addr]; ok {
+				assert.Fail("duplicate address found: " + addr)
+			} else {
+				addresses[addr] = struct{}{}
+			}
+		}
+	})
+
+	test.execute(t)
+}

@@ -47,6 +47,51 @@ func mkPool(etcd *clientv3.Client, cidr string) *etcdPoolManager {
 	}
 }
 
+func TestConcurrentBind(t *testing.T) {
+	assert := assert.New(t)
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	assert.NoError(err)
+
+	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/24")
+	assert.NoError(err)
+
+	pool, err := nm.NewPool(nil, 50, api.Pool_FIXED)
+	assert.NoError(err)
+
+	for i := 0; i < 10; i++ {
+		_, err := pool.Allocate(nil)
+		assert.NoError(err)
+	}
+
+	addrChan := make(chan string)
+
+	for i := 0; i < 10; i++ {
+		go func() {
+			b, err := pool.BindAny(map[string]string{})
+			assert.NoError(err)
+			if err == nil {
+				addrChan <- b.Address
+			}
+		}()
+	}
+
+	addresses := map[string]struct{}{}
+	for i := 0; i < 10; i++ {
+		addr := <-addrChan
+		if _, ok := addresses[addr]; ok {
+			t.Error("duplicate bound address: " + addr)
+		} else {
+			addresses[addr] = struct{}{}
+		}
+	}
+}
+
 func TestAllocate(t *testing.T) {
 	assert := assert.New(t)
 	cli, err := clientv3.New(clientv3.Config{
