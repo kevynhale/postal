@@ -140,7 +140,7 @@ func (pm *etcdPoolManager) writeBinding(binding *etcdBinding, ttl int64) error {
 	res, err := pm.etcd.KV.Txn(context.TODO()).If(binding.etcdConditions()...).Then(ops...).Commit()
 
 	if err != nil {
-		return errors.Wrap(err, "etcd transaction failed")
+		return errors.Wrap(err, "etcd transaction error")
 	}
 
 	if !res.Succeeded {

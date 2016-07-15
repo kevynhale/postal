@@ -218,6 +218,7 @@ func (pm *etcdPoolManager) Release(b *api.Binding, hard bool) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to hard release binding")
 		}
+		return nil
 	}
 
 	switch pm.pool.Type {
