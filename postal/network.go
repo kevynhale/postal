@@ -38,6 +38,7 @@ type NetworkManager interface {
 	Binding(net.IP) (*api.Binding, error)
 	Bindings(filters map[string]string) ([]*api.Binding, error)
 	APINetwork() *api.Network
+	ScrubAddress(net.IP)
 }
 
 type etcdNetworkManager struct {
@@ -199,4 +200,8 @@ func (nm *etcdNetworkManager) Bindings(filters map[string]string) ([]*api.Bindin
 	}
 
 	return bindings, nil
+}
+
+func (nm *etcdNetworkManager) ScrubAddress(ip net.IP) {
+	nm.IPAM.Release(ip)
 }

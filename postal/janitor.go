@@ -47,8 +47,8 @@ func (j *Janitor) Run() {
 					ip = net.ParseIP(strings.Join(cIP, ":"))
 				}
 
-				plog.Debugf("janitor: cleaning up %s for network %s: %v", ip.String(), nm.APINetwork().ID,
-					nm.(*etcdNetworkManager).IPAM.Release(ip))
+				plog.Debugf("janitor: cleaning up %s for network %s: %v", ip.String(), nm.APINetwork().ID)
+				nm.ScrubAddress(ip)
 			}
 		}
 	}
