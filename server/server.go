@@ -350,6 +350,9 @@ func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAdd
 	if pm == nil {
 		pm, err = nm.Pool(binding.PoolID.ID)
 		if err != nil {
+			if req.Hard && len(req.Address) > 0 {
+				nm.ScrubAddress(net.ParseIP(req.Address))
+			}
 			return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
 		}
 	}
