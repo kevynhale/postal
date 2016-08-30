@@ -19,12 +19,14 @@ package cmd
 import (
 	"crypto/tls"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/postal"
 	"github.com/jive/postal/server"
+	"github.com/soheilhy/cmux"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -32,6 +34,7 @@ import (
 var etcdEndpoints []string
 var etcdDialTimeout time.Duration
 var serverDebug bool
+var enableHTTP bool
 
 // serverCmd represents the bind command
 var serverCmd = &cobra.Command{
@@ -73,10 +76,23 @@ var serverCmd = &cobra.Command{
 			lis = tls.NewListener(lis, mustBuildTLSConfig(scfg))
 		}
 
+		m := cmux.New(lis)
+		grpcL := m.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+		httpL := m.Match(cmux.HTTP1Fast())
+
 		grpcServer := grpc.NewServer()
 		srv := server.NewServer(cli)
 		srv.Register(grpcServer)
-		grpcServer.Serve(lis)
+		go grpcServer.Serve(grpcL)
+
+		if enableHTTP {
+			httpServer := &http.Server{
+				Handler: srv,
+			}
+			go httpServer.Serve(httpL)
+		}
+
+		m.Serve()
 	},
 }
 
@@ -86,4 +102,5 @@ func init() {
 	serverCmd.Flags().StringSliceVar(&etcdEndpoints, "etcd", []string{"127.0.0.1:2379"}, "etcd servers to use")
 	serverCmd.Flags().DurationVar(&etcdDialTimeout, "etcd-timeout", 5*time.Second, "etcd dial timeout")
 	serverCmd.Flags().BoolVar(&serverDebug, "debug", false, "enable debug logging")
+	serverCmd.Flags().BoolVar(&enableHTTP, "http", false, "enable http api")
 }

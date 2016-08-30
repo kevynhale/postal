@@ -5,6 +5,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/pkg/capnslog"
+	"github.com/gorilla/mux"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/postal"
 	"github.com/pkg/errors"
@@ -18,12 +19,15 @@ var (
 
 type PostalServer struct {
 	etcd *clientv3.Client
+	r    *mux.Router
 }
 
 func NewServer(etcd *clientv3.Client) *PostalServer {
-	return &PostalServer{
+	srv := &PostalServer{
 		etcd: etcd,
 	}
+	initHTTPServer(srv)
+	return srv
 }
 
 func (srv *PostalServer) Register(s *grpc.Server) {

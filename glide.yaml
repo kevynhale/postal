@@ -9,30 +9,32 @@ import:
 - package: github.com/golang/protobuf
   version: 3607a4a99491b23e98d1a68cb408800bdcfb5698
   subpackages:
-  - /proto
+  - proto
 - package: github.com/gogo/protobuf
   version: 2752d97bbd91927dd1c43296dbf8700e50e2708c
   subpackages:
-  - /proto
-  - /protoc-gen-gogo
-  - /gogoproto
+  - proto
+  - protoc-gen-gogo
+  - gogoproto
 - package: github.com/cenk/backoff
   version: 32cd0c5b3aef12c76ed64aaf678f6c79736be7dc
 - package: golang.org/x/net
   subpackages:
-  - /context
+  - context
 - package: google.golang.org/grpc
   version: ~1.x
 - package: github.com/stretchr/testify
   version: c5d7a69bf8a2c9c374798160849c071093e41dd1
   subpackages:
-  - /assert
+  - assert
 - package: github.com/twinj/uuid
 - package: github.com/olekukonko/tablewriter
 - package: github.com/spf13/cobra
 - package: github.com/dustin/go-humanize
 - package: github.com/coreos/pkg
   subpackages:
-  - /capnslog
+  - capnslog
 - package: github.com/gengo/grpc-gateway
   version: faa3576c70e270b37279f045637a7d04f632e353
+- package: github.com/soheilhy/cmux
+  version: ^0.1.1

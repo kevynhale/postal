@@ -3,18 +3,20 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
 	"github.com/jive/postal/postal"
+	"github.com/soheilhy/cmux"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-type sandboxedServerTest func(assert *assert.Assertions, client api.PostalClient)
+type sandboxedServerTest func(assert *assert.Assertions, client api.PostalClient, httpClient *http.Client, endpoint string)
 
 func (srvTest sandboxedServerTest) execute(t *testing.T) {
 	assert := assert.New(t)
@@ -36,20 +38,41 @@ func (srvTest sandboxedServerTest) execute(t *testing.T) {
 	defer lis.Close()
 	assert.NoError(err)
 
+	m := cmux.New(lis)
+	grpcL := m.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	httpL := m.Match(cmux.HTTP1Fast())
+
 	grpcServer := grpc.NewServer()
-	srv := PostalServer{etcd: cli}
+	srv := NewServer(cli)
 	srv.Register(grpcServer)
-	go grpcServer.Serve(lis)
+	go grpcServer.Serve(grpcL)
+
+	httpServer := &http.Server{
+		Handler: srv,
+	}
+	go httpServer.Serve(httpL)
+
+	go m.Serve()
 
 	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure())
 	assert.NoError(err)
 	defer conn.Close()
 	client := api.NewPostalClient(conn)
-	srvTest(assert, client)
+
+	var httpClient = &http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			Dial: (&net.Dialer{
+				Timeout: 5 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: 5 * time.Second,
+		},
+	}
+	srvTest(assert, client, httpClient, "http://"+serverAddr)
 }
 
 func TestSrvNetwork(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		// Add sme networks to the server
 		networkCount := 5
 		networks := map[string]*api.Network{}
@@ -94,7 +117,7 @@ func TestSrvNetwork(t *testing.T) {
 }
 
 func TestSrvPool(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
 			Cidr:        "10.0.0.0/16",
@@ -164,7 +187,7 @@ func TestSrvPool(t *testing.T) {
 }
 
 func TestSrvDynamicPool(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
@@ -289,7 +312,7 @@ func TestSrvDynamicPool(t *testing.T) {
 }
 
 func TestSrvFixedPool(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
@@ -442,7 +465,7 @@ func TestSrvFixedPool(t *testing.T) {
 }
 
 func TestSrvBulkAllocate(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
@@ -493,7 +516,7 @@ func TestSrvBulkAllocate(t *testing.T) {
 }
 
 func TestAllocateReleaseAllocate(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
@@ -574,7 +597,7 @@ func TestAllocateReleaseAllocate(t *testing.T) {
 }
 
 func TestConcurrentBind(t *testing.T) {
-	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient, _ *http.Client, _ string) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
 		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
 			Annotations: map[string]string{},
