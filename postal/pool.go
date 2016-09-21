@@ -25,7 +25,6 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
 )
 
@@ -84,7 +83,6 @@ type PoolManager interface {
 type etcdPoolManager struct {
 	etcd *clientv3.Client
 	pool *api.Pool
-	IPAM ipam.IPAM
 }
 
 func (pm *etcdPoolManager) APIPool() *api.Pool {
@@ -134,30 +132,7 @@ func (pm *etcdPoolManager) BindAny(annotations map[string]string) (*api.Binding,
 		}
 	}
 
-	if pm.pool.Type == api.Pool_FIXED {
-		return nil, errors.New("bind failed: all allocated addresses in use")
-	}
-	// No existing binding could be used, so a new address is allocated
-	if pm.CurrentSize() >= pm.MaxSize() {
-		return nil, errors.New("allocate failed: maximum addresses reached")
-	}
-	ip, err := pm.IPAM.Allocate(1)
-	if err != nil {
-		return nil, errors.Wrap(err, "allocating address from ipam failed")
-	}
-
-	binding := newBinding(&api.Binding{
-		PoolID:      pm.pool.ID,
-		ID:          newBindingID(),
-		Annotations: annotations,
-	})
-
-	err = pm.bindBinding(binding, ip[0])
-	if err != nil {
-		return nil, errors.Wrap(err, "binding address failed")
-	}
-
-	return binding.Binding, nil
+	return nil, errors.New("bind failed: all allocated addresses in use")
 }
 
 func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress net.IP) (*api.Binding, error) {
@@ -190,11 +165,6 @@ func (pm *etcdPoolManager) Bind(annotations map[string]string, requestedAddress 
 		return nil, errors.New("allocate failed: maximum addresses reached")
 	}
 
-	err = pm.IPAM.Claim(requestedAddress)
-	if err != nil {
-		return nil, errors.Wrap(err, "address claim failed")
-	}
-
 	err = pm.bindBinding(binding, requestedAddress)
 	if err != nil {
 		return nil, errors.Wrap(err, "binding address failed")
@@ -221,18 +191,9 @@ func (pm *etcdPoolManager) Release(b *api.Binding, hard bool) error {
 		return nil
 	}
 
-	switch pm.pool.Type {
-	case api.Pool_DYNAMIC:
-		err = pm.releaseBinding(binding, DefaultReleasedBindingTTL)
-		if err != nil {
-			return errors.Wrap(err, "failed to release binding")
-		}
-
-	case api.Pool_FIXED:
-		err = pm.releaseBinding(binding, 0)
-		if err != nil {
-			return errors.Wrap(err, "failed to release binding")
-		}
+	err = pm.releaseBinding(binding, NoTTL)
+	if err != nil {
+		return errors.Wrap(err, "failed to release binding")
 	}
 
 	return nil

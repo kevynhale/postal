@@ -64,20 +64,20 @@ func newBinding(b *api.Binding) *etcdBinding {
 
 func (pm *etcdPoolManager) allocateBinding(binding *etcdBinding, addr net.IP) error {
 	if addr == nil || addr.IsUnspecified() {
-		ip, err := pm.IPAM.Allocate(1)
-		if err != nil {
-			return errors.Wrap(err, "allocating address from ipam failed")
-		}
-		binding.AllocateTime = time.Now().UTC().UnixNano()
-		binding.Address = ip[0].String()
-	} else {
-		err := pm.IPAM.Claim(addr)
-		if err != nil {
-			return errors.Wrap(err, "address claim failed")
-		}
-		binding.AllocateTime = time.Now().UTC().UnixNano()
-		binding.Address = addr.String()
+		return errors.New("must specify an address")
 	}
+
+	resp, err := pm.etcd.Get(context.Background(), bindingAddrKey(pm.pool.ID.NetworkID, addr))
+	if err != nil {
+		return err
+	}
+
+	if resp.Count != 0 {
+		return errors.New("address already allocated")
+	}
+	binding.AllocateTime = time.Now().UTC().UnixNano()
+	binding.Address = addr.String()
+
 	return pm.writeBinding(binding, NoTTL)
 }
 

@@ -135,5 +135,5 @@ func init() {
 	createNetworkCmd.Flags().StringSliceP("annotation", "a", []string{}, "key=value pair of data to annotate the network with")
 
 	createPoolCmd.Flags().StringSliceP("annotation", "a", []string{}, "key=value pair of data to annotate the pool with")
-	createPoolCmd.Flags().StringP("type", "t", "dynamic", "pool type (dynamic, fixed)")
+	createPoolCmd.Flags().StringP("type", "t", "fixed", "pool type (dynamic, fixed)")
 }

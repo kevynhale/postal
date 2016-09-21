@@ -23,7 +23,6 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/pkg/capnslog"
-	"github.com/jive/postal/postal"
 	"github.com/jive/postal/server"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -53,9 +52,6 @@ var serverCmd = &cobra.Command{
 			plog.Fatalf("failed to open etcd client conn: %s", err)
 		}
 		defer cli.Close()
-
-		plog.Info("starting binding janitor")
-		go postal.NewJanitor(cli).Run()
 
 		var lis net.Listener
 		plog.Infof("listening for client connections on [%s]", globalFlags.Endpoint)

@@ -17,6 +17,7 @@ limitations under the License.
 package postal
 
 import (
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -26,12 +27,10 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/ipam"
 	"github.com/stretchr/testify/assert"
 )
 
 func mkPool(etcd *clientv3.Client, cidr string) *etcdPoolManager {
-	IPAM, _ := ipam.NewIPAM(cidr, etcd)
 	return &etcdPoolManager{
 		etcd: etcd,
 		pool: &api.Pool{
@@ -43,52 +42,6 @@ func mkPool(etcd *clientv3.Client, cidr string) *etcdPoolManager {
 			MaximumAddresses: 5,
 			Type:             api.Pool_FIXED,
 		},
-		IPAM: IPAM,
-	}
-}
-
-func TestConcurrentBind(t *testing.T) {
-	assert := assert.New(t)
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"127.0.0.1:2379"},
-		DialTimeout: 5 * time.Second,
-	})
-	assert.NoError(err)
-
-	defer cli.Close()
-	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
-
-	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/24")
-	assert.NoError(err)
-
-	pool, err := nm.NewPool(nil, 50, api.Pool_FIXED)
-	assert.NoError(err)
-
-	for i := 0; i < 10; i++ {
-		_, err := pool.Allocate(nil)
-		assert.NoError(err)
-	}
-
-	addrChan := make(chan string)
-
-	for i := 0; i < 10; i++ {
-		go func() {
-			b, err := pool.BindAny(map[string]string{})
-			assert.NoError(err)
-			if err == nil {
-				addrChan <- b.Address
-			}
-		}()
-	}
-
-	addresses := map[string]struct{}{}
-	for i := 0; i < 10; i++ {
-		addr := <-addrChan
-		if _, ok := addresses[addr]; ok {
-			t.Error("duplicate bound address: " + addr)
-		} else {
-			addresses[addr] = struct{}{}
-		}
 	}
 }
 
@@ -109,7 +62,7 @@ func TestAllocate(t *testing.T) {
 	pool, err := nm.NewPool(nil, 5, api.Pool_FIXED)
 	assert.NoError(err)
 
-	binding, err := pool.Allocate(nil)
+	binding, err := pool.Allocate(net.ParseIP("10.0.0.1"))
 	assert.NoError(err)
 	assert.NotNil(binding)
 
@@ -135,9 +88,6 @@ func TestReleaseHard(t *testing.T) {
 		DialTimeout: 5 * time.Second,
 	})
 	assert.NoError(err)
-
-	j := &Janitor{etcd: cli}
-	go j.Run()
 
 	defer cli.Close()
 	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
@@ -183,7 +133,7 @@ func TestSetMaxSize(t *testing.T) {
 
 	pool := mkPool(cli, "10.0.0.0/24")
 	for i := uint64(0); i < pool.MaxSize(); i++ {
-		_, err = pool.Allocate(nil)
+		_, err = pool.Allocate(net.ParseIP(fmt.Sprintf("10.0.0.%d", i)))
 		assert.NoError(err)
 	}
 
@@ -193,9 +143,9 @@ func TestSetMaxSize(t *testing.T) {
 	err = pool.SetMaxSize(6)
 	assert.NoError(err)
 
-	_, err = pool.Allocate(nil)
+	_, err = pool.Allocate(net.ParseIP("10.0.0.100"))
 	assert.NoError(err)
 
-	_, err = pool.Allocate(nil)
+	_, err = pool.Allocate(net.ParseIP("10.0.0.101"))
 	assert.Error(err)
 }

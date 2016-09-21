@@ -24,7 +24,6 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/pkg/capnslog"
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -49,7 +48,6 @@ func (config *Config) WithEtcdClient(etcd *clientv3.Client) *Config {
 
 type etcdNetworkMeta struct {
 	ID          string            `json:"id"`
-	IpamID      string            `json:"ipam"`
 	Cidr        string            `json:"cidr"`
 	Annotations map[string]string `json:"annotations"`
 }
@@ -149,30 +147,18 @@ func (config *Config) Network(ID string) (NetworkManager, error) {
 		return nil, err
 	}
 
-	IPAM, err := ipam.FetchIPAM(network.IpamID, config.etcd)
-	if err != nil {
-		return nil, err
-	}
-
 	return &etcdNetworkManager{
 		ID:          network.ID,
 		cidr:        network.Cidr,
 		annotations: network.Annotations,
-		IPAM:        IPAM,
 		etcd:        config.etcd,
 	}, nil
 }
 
 // NewNetwork creates a new NetworkManager for the given block of addresses.
 func (config *Config) NewNetwork(annotations map[string]string, cidr string) (NetworkManager, error) {
-	IPAM, err := ipam.NewIPAM(cidr, config.etcd)
-	if err != nil {
-		return nil, err
-	}
-
 	network := &etcdNetworkMeta{
 		ID:          newNetworkID(),
-		IpamID:      IPAM.GetID(),
 		Cidr:        cidr,
 		Annotations: annotations,
 	}
@@ -197,7 +183,6 @@ func (config *Config) NewNetwork(annotations map[string]string, cidr string) (Ne
 		ID:          network.ID,
 		cidr:        cidr,
 		annotations: annotations,
-		IPAM:        IPAM,
 		etcd:        config.etcd,
 	}, nil
 }

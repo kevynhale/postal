@@ -26,7 +26,6 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jive/postal/api"
-	"github.com/jive/postal/ipam"
 	"github.com/pkg/errors"
 )
 
@@ -38,7 +37,6 @@ type NetworkManager interface {
 	Binding(net.IP) (*api.Binding, error)
 	Bindings(filters map[string]string) ([]*api.Binding, error)
 	APINetwork() *api.Network
-	ScrubAddress(net.IP)
 }
 
 type etcdNetworkManager struct {
@@ -46,7 +44,6 @@ type etcdNetworkManager struct {
 	cidr        string
 	annotations map[string]string
 
-	IPAM ipam.IPAM
 	etcd *clientv3.Client
 }
 
@@ -130,7 +127,6 @@ func (nm *etcdNetworkManager) Pool(ID string) (PoolManager, error) {
 	return &etcdPoolManager{
 		etcd: nm.etcd,
 		pool: pool,
-		IPAM: nm.IPAM,
 	}, nil
 }
 
@@ -163,7 +159,6 @@ func (nm *etcdNetworkManager) NewPool(annotations map[string]string, max uint64,
 	return &etcdPoolManager{
 		etcd: nm.etcd,
 		pool: pool,
-		IPAM: nm.IPAM,
 	}, nil
 }
 
@@ -187,7 +182,6 @@ func (nm *etcdNetworkManager) Bindings(filters map[string]string) ([]*api.Bindin
 		pm := &etcdPoolManager{
 			etcd: nm.etcd,
 			pool: pools[idx],
-			IPAM: nm.IPAM,
 		}
 		etcdBindings, err := pm.listBindings(filters)
 		if err != nil {
@@ -200,8 +194,4 @@ func (nm *etcdNetworkManager) Bindings(filters map[string]string) ([]*api.Bindin
 	}
 
 	return bindings, nil
-}
-
-func (nm *etcdNetworkManager) ScrubAddress(ip net.IP) {
-	nm.IPAM.Release(ip)
 }

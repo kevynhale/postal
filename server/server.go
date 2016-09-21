@@ -329,9 +329,6 @@ func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAdd
 	if len(req.Address) > 0 {
 		binding, err = nm.Binding(net.ParseIP(req.Address))
 		if err != nil {
-			if req.Hard {
-				nm.ScrubAddress(net.ParseIP(req.Address))
-			}
 			return nil, errors.Wrapf(err, "failed to find binding for ip (%s)", req.Address)
 		}
 	} else {
@@ -350,9 +347,6 @@ func (srv *PostalServer) ReleaseAddress(ctx context.Context, req *api.ReleaseAdd
 	if pm == nil {
 		pm, err = nm.Pool(binding.PoolID.ID)
 		if err != nil {
-			if req.Hard && len(req.Address) > 0 {
-				nm.ScrubAddress(net.ParseIP(req.Address))
-			}
 			return nil, errors.Wrapf(err, "failed to retrieve pool in network (%s) for id (%s)", req.PoolID.NetworkID, req.PoolID.ID)
 		}
 	}
