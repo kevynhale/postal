@@ -1,4 +1,4 @@
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD | sed 's/\//_/g' 2>/dev/null)
 BUILD_IMG := postal-build$(if $(GIT_BRANCH),:$(GIT_BRANCH))
 
 INTEGRATION_OPTS := $(if $(MAKE_DOCKER_HOST),-e "DOCKER_HOST=$(MAKE_DOCKER_HOST)", -v "/var/run/docker.sock:/var/run/docker.sock")
