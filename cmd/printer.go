@@ -84,7 +84,7 @@ func (s *simplePrinter) PoolRange(resp *api.PoolRangeResponse) {
 
 func (s *simplePrinter) BindingRange(resp *api.BindingRangeResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	for _, b := range resp.Bindings {
 		s.binding(w, b)
@@ -98,7 +98,7 @@ func (s *simplePrinter) PoolSetMax(resp *api.PoolSetMaxResponse) {
 
 func (s *simplePrinter) AllocateAddress(resp *api.AllocateAddressResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	s.binding(w, resp.Binding)
 }
@@ -117,7 +117,7 @@ func (s *simplePrinter) BulkAllocateAddress(resp *api.BulkAllocateAddressRespons
 
 func (s *simplePrinter) BindAddress(resp *api.BindAddressResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	s.binding(w, resp.Binding)
 }
@@ -143,12 +143,12 @@ func (s *simplePrinter) formatTime(t time.Time) string {
 		return humanize.Time(t)
 	}
 
-	return t.String()
+	return t.String()[0:19]
 }
 
 func (s *simplePrinter) boundStatus(bindTime int64, releaseTime int64) string {
-	if (bindTime < releaseTime) {
-		return "RELEASED " // necessary for tabulation to separate this column with the next
+	if bindTime == 0 || bindTime < releaseTime {
+		return "AVAILABLE"
 	} else {
 		return "BOUND"
 	}
