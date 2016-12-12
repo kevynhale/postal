@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"sort"
 )
 
 // ParseAnnotations converts a slice of key=val pairs to a map
@@ -36,5 +37,6 @@ func flattenAnnotations(a map[string]string) []string {
 	for k, v := range a {
 		annotations = append(annotations, fmt.Sprintf("%s=%s", k, v))
 	}
+	sort.Strings(annotations)
 	return annotations
 }

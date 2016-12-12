@@ -36,7 +36,7 @@ var bindCmd = &cobra.Command{
 			return fmt.Errorf("invalid arguments")
 		}
 
-		annotationsVars, err := cmd.Flags().GetStringSlice("annotations")
+		annotationsVars, err := cmd.Flags().GetStringSlice("annotation")
 		if err != nil {
 			return err
 		}
@@ -67,4 +67,6 @@ var bindCmd = &cobra.Command{
 
 func init() {
 	PostalCmd.AddCommand(bindCmd)
+
+	bindCmd.Flags().StringSliceP("annotation", "a", []string{}, "key=value pair of data to annotate the binding with")
 }

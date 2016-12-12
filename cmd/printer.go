@@ -84,8 +84,8 @@ func (s *simplePrinter) PoolRange(resp *api.PoolRangeResponse) {
 
 func (s *simplePrinter) BindingRange(resp *api.BindingRangeResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tAalocated\tbound\treleased\tannotations")
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	for _, b := range resp.Bindings {
 		s.binding(w, b)
 	}
@@ -98,8 +98,8 @@ func (s *simplePrinter) PoolSetMax(resp *api.PoolSetMaxResponse) {
 
 func (s *simplePrinter) AllocateAddress(resp *api.AllocateAddressResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tAalocated\tbound\treleased\tannotations")
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	s.binding(w, resp.Binding)
 }
 
@@ -117,17 +117,18 @@ func (s *simplePrinter) BulkAllocateAddress(resp *api.BulkAllocateAddressRespons
 
 func (s *simplePrinter) BindAddress(resp *api.BindAddressResponse) {
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tAalocated\tbound\treleased\tannotations")
+	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+	fmt.Fprintln(w, "network_id\tpool_id\tbinding_id\taddress\tallocated\tstatus\tbound\treleased\tannotations")
 	s.binding(w, resp.Binding)
 }
 
 func (s *simplePrinter) ReleaseAddress(resp *api.ReleaseAddressResponse) {}
 
 func (s *simplePrinter) binding(w *tabwriter.Writer, b *api.Binding) {
-	fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 		b.PoolID.NetworkID, b.PoolID.ID, b.ID, b.Address,
 		s.formatTime(time.Unix(0, b.AllocateTime)),
+		s.boundStatus(b.BindTime, b.ReleaseTime),
 		s.formatTime(time.Unix(0, b.BindTime)),
 		s.formatTime(time.Unix(0, b.ReleaseTime)),
 		strings.Join(flattenAnnotations(b.Annotations), ","))
@@ -142,5 +143,13 @@ func (s *simplePrinter) formatTime(t time.Time) string {
 		return humanize.Time(t)
 	}
 
-	return t.String()
+	return t.String()[0:19]
+}
+
+func (s *simplePrinter) boundStatus(bindTime int64, releaseTime int64) string {
+	if bindTime == 0 || bindTime < releaseTime {
+		return "AVAILABLE"
+	} else {
+		return "BOUND"
+	}
 }
