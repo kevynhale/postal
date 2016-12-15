@@ -179,16 +179,16 @@ func (pm *etcdPoolManager) Release(b *api.Binding, hard bool) error {
 		return errors.Wrap(err, "failed to get binding")
 	}
 
-	if binding.ReleaseTime > binding.BindTime {
-		return errors.New("cannot release binding, already released")
-	}
-
 	if hard {
 		err = pm.releaseBinding(binding, HardRelease)
 		if err != nil {
 			return errors.Wrap(err, "failed to hard release binding")
 		}
 		return nil
+	}
+
+	if binding.ReleaseTime > binding.BindTime {
+		return errors.New("cannot release binding, already released")
 	}
 
 	err = pm.releaseBinding(binding, NoTTL)
