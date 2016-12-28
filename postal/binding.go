@@ -72,7 +72,7 @@ func (pm *etcdPoolManager) allocateBinding(binding *etcdBinding, addr net.IP) er
 		return err
 	}
 
-	if resp.Count != 0 {
+	if len(resp.Kvs) != 0 {
 		return errors.New("address already allocated")
 	}
 	binding.AllocateTime = time.Now().UTC().UnixNano()
