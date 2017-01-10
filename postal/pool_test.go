@@ -80,6 +80,34 @@ func TestAllocate(t *testing.T) {
 	assert.Nil(binding3)
 }
 
+func TestAllocateMuliplePools(t *testing.T) {
+	assert := assert.New(t)
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	assert.NoError(err)
+
+	defer cli.Close()
+	defer cli.KV.Delete(context.Background(), "/", clientv3.WithPrefix())
+
+	nm, err := (&Config{}).WithEtcdClient(cli).NewNetwork(nil, "10.0.0.0/24")
+	assert.NoError(err)
+
+	pool1, err := nm.NewPool(nil, 5, api.Pool_FIXED)
+	assert.NoError(err)
+
+	pool2, err := nm.NewPool(nil, 5, api.Pool_FIXED)
+	assert.NoError(err)
+
+	binding, err := pool1.Allocate(net.ParseIP("10.0.0.1"))
+	assert.NoError(err)
+	assert.NotNil(binding)
+
+	binding, err = pool2.Allocate(net.ParseIP("10.0.0.1"))
+	assert.Error(err)
+}
+
 func TestReleaseHard(t *testing.T) {
 	capnslog.SetGlobalLogLevel(capnslog.DEBUG)
 	assert := assert.New(t)

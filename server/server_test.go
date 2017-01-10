@@ -160,6 +160,49 @@ func TestSrvPool(t *testing.T) {
 	test.execute(t)
 }
 
+func TestSrvMultiplePools(t *testing.T) {
+	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
+		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
+		networkResp, networkErr := client.NetworkAdd(context.TODO(), &api.NetworkAddRequest{
+			Annotations: map[string]string{},
+			Cidr:        networkCidr.String(),
+		})
+		assert.NoError(networkErr)
+
+		poolResp, poolErr := client.PoolAdd(context.TODO(), &api.PoolAddRequest{
+			NetworkID:   networkResp.Network.ID,
+			Annotations: map[string]string{},
+			Maximum:     3,
+			Type:        api.Pool_FIXED,
+		})
+		assert.NoError(poolErr)
+
+		allocResp, allocErr := client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "10.0.0.1",
+		})
+		assert.NoError(allocErr)
+		allocatedAddr := net.ParseIP(allocResp.Binding.Address)
+		assert.False(allocatedAddr.IsUnspecified())
+		assert.True(networkCidr.Contains(allocatedAddr))
+
+		_, allocErr = client.AllocateAddress(context.TODO(), &api.AllocateAddressRequest{
+			PoolID:  poolResp.Pool.ID,
+			Address: "10.0.0.1",
+		})
+		assert.Error(allocErr)
+
+		bindingRngResp, err := client.BindingRange(context.TODO(), &api.BindingRangeRequest{
+			NetworkID: poolResp.Pool.ID.NetworkID,
+			Filters:   map[string]string{"_address": allocResp.Binding.Address},
+		})
+		assert.NoError(err)
+		assert.Len(bindingRngResp.Bindings, 1)
+
+	})
+	test.execute(t)
+}
+
 func TestSrvFixedPool(t *testing.T) {
 	test := sandboxedServerTest(func(assert *assert.Assertions, client api.PostalClient) {
 		_, networkCidr, _ := net.ParseCIDR("10.0.0.0/16")
